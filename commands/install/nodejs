@@ -24,19 +24,16 @@ dependency_check() {
   fi
 }
 
-install_nvm() {
-  echo "Install NVM ..."
+config_rc() {
+  #  [[ -f "$HOME/.zshrc" ]] &&
+  #   XSHRC="$HOME/.zshrc" ||
+  #   XSHRC="$HOME/.bashrc"
+  local XSHRC=$1
 
-  if [ "$(net_is_google_visitable)" = "false" ]; then
-    export NVM_SOURCE=https://gitee.com/whatwewant/nvm
-    curl -o- https://gitee.com/whatwewant/nvm/raw/master/install.sh | bash
-  else
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+  # if not found, ignore
+  if [ ! -f $XSHRC ]; then
+    return
   fi
-
-  [[ -f "$HOME/.zshrc" ]] &&
-    XSHRC="$HOME/.zshrc" ||
-    XSHRC="$HOME/.bashrc"
 
   cat $XSHRC | grep NVM_DIR >>/dev/null 2>&1
   if [ "$?" != "0" ]; then
@@ -49,7 +46,21 @@ EOF
   fi
 }
 
+install_nvm() {
+  echo "Install NVM ..."
+
+  if [ "$(net_is_google_visitable)" = "false" ]; then
+    export NVM_SOURCE=https://gitee.com/whatwewant/nvm
+    curl -o- https://gitee.com/whatwewant/nvm/raw/master/install.sh | bash
+  else
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+  fi
+}
+
 install_nodejs() {
+  config_rc $HOME/.bashrc
+  config_rc $HOME/.zshrc
+
   local version=$DEFAILT_NODEJS_VERSION
 
   while getopts v: name; do
