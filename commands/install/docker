@@ -9,6 +9,12 @@ TMP_INSTALL_SCRIPT=/tmp/get-docker.sh
 #   [Solved]: Stack Overflow: https://stackoverflow.com/questions/5431909/returning-a-boolean-from-a-bash-function
 #
 is_docker_installed() {
+  which docker >> /dev/null 2>&1
+  if [ "$?" != "0" ]; then
+    log_debug "[is_docker_installed] Docker not found"
+    return 1
+  fi
+
   if [ ! -f $COMPOSE_BIN_PATH ]; then
     log_debug "[is_docker_installed] Docker Compose not found"
     return 1
