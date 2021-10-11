@@ -1,6 +1,6 @@
 #!/bin/bash
 COMPOSE_BIN_PATH=/usr/bin/docker-compose
-COMPOSE_VERSION=1.29.1
+COMPOSE_VERSION_DEFAULT=1.29.1
 
 help() {
   echo "Usage:"
@@ -13,17 +13,27 @@ core() {
     exit 0
   fi
 
+  local version=$COMPOSE_VERSION_DEFAULT
+  if [ "$1" = "-v" ]; then
+    version=$2
+
+    if [ -z "$version" ]; then
+      log_error "version is required"
+      exit 1
+    fi
+  fi
+
   if [ -f $COMPOSE_BIN_PATH ]; then
     local current_version=$(docker-compose version --short)
-    if [ "$current_version" = "$COMPOSE_VERSION" ]; then
-      log "Docker Compose ${COMPOSE_VERSION} has already been installed"
+    if [ "$current_version" = "$version" ]; then
+      log "Docker Compose ${version} has already been installed"
       exit 0
     fi
   fi
 
-  log "Install Docker Compose ..."
+  log "Install Docker Compose (${version}) ..."
 
-  sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o $COMPOSE_BIN_PATH >> $ZMICRO_LOG_COMMON_PATH 2>&1
+  sudo curl -L "https://github.com/docker/compose/releases/download/${version}/docker-compose-$(uname -s)-$(uname -m)" -o $COMPOSE_BIN_PATH >> $ZMICRO_LOG_COMMON_PATH 2>&1
   sudo chmod +x $COMPOSE_BIN_PATH
   
   log_success "Success to install Docker Compose CLI ."
