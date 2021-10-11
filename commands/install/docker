@@ -1,5 +1,5 @@
 #!/bin/bash
-DEFAULT_NETWORK=ingress-compose
+DEFAULT_NETWORK=compose-ingress
 COMPOSE_BIN_PATH=/usr/bin/docker-compose
 COMPOSE_VERSION=1.29.1
 
