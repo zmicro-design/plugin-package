@@ -1,0 +1,42 @@
+#!/bin/bash
+
+zpackage_run() {
+  local action=$1
+  local name=$2
+
+  if [ -z "$action" ]; then
+    log_error "[zpackage_run] action is required"
+    exit 1
+  fi
+
+  if [ -z "$name" ]; then
+    log_error "[zpackage_run] name is required"
+    exit 1
+  fi
+
+  local package_path=$PACKAGES_PATH/$name
+  if [ ! -d "$package_path" ]; then
+    log_error "[zpackage_run] package(${name}) is not available"
+    exit 1
+  fi
+
+  local package_action_path=$package_path/$action
+  if [ ! -f "$package_action_path" ]; then 
+    log_error "[zpackage_run] package(${name}) found, but action(${action}) is not available"
+    exit 1
+  fi
+
+  $package_action_path
+}
+
+zpackage_list() {
+  local packages=$(ls $PACKAGES_PATH)
+  local index=1
+  for name in $packages; do
+    echo "[$index] $name"
+    index=$((index + 1))
+  done
+}
+
+export -f zpackage_run
+export -f zpackage_list

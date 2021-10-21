@@ -1,0 +1,1 @@
+export PACKAGES_PATH=$ZMICRO_PLUGINS_PATH/package/packages
