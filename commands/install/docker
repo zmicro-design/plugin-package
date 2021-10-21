@@ -1,7 +1,7 @@
 #!/bin/bash
 DEFAULT_NETWORK=compose-ingress
-COMPOSE_BIN_PATH=/usr/bin/docker-compose
-COMPOSE_VERSION=1.29.1
+# COMPOSE_BIN_PATH=/usr/local/bin/docker-compose
+# COMPOSE_VERSION=1.29.1
 
 TMP_INSTALL_SCRIPT=/tmp/get-docker.sh
 
@@ -15,19 +15,8 @@ is_docker_installed() {
     return 1
   fi
 
-  if [ ! -f $COMPOSE_BIN_PATH ]; then
-    log_debug "[is_docker_installed] Docker Compose not found"
-    return 1
-  fi
-
-  CURRENT_COMPOSE_VERSION=$(docker-compose version --short)
-  if [ "$CURRENT_COMPOSE_VERSION" != "$CURRENT_COMPOSE_VERSION" ]; then
-    log "Docker Compose version is not (${COMPOSE_VERSION})"
-    return 1
-  fi
-
   DOCKER_VERSION=$(get_docker_version)
-  log "Docker(${DOCKER_VERSION}) already installed with Compose(${COMPOSE_VERSION})"
+  log_info "Found Docker(${DOCKER_VERSION})"
   return 0
 }
 
@@ -64,15 +53,32 @@ try_to_remove_podman() {
 }
 
 install_docker_core() {
-  sudo curl -fsSL https://get.docker.com -o $TMP_INSTALL_SCRIPT
-  sudo sh $TMP_INSTALL_SCRIPT
+  # Returning a boolean from a bash function
+  #   Useage
+  if is_docker_installed; then
+    create_network
+    return 
+  fi
 
-  sudo usermod -aG docker $USER
+  if [ "$(os_is_macos)" = "true" ]; then
+    # MacOS
+    # 1. CLI
+    brew install docker
+    # 2. Runtime
+    brew install colima
+    # 3. Start
+    colima start --cpu 4 --memory 8 --disk 100
+  else
+    # Linux
+    sudo curl -fsSL https://get.docker.com -o $TMP_INSTALL_SCRIPT
+    sudo sh $TMP_INSTALL_SCRIPT
+    # 
+    sudo usermod -aG docker $USER
+  fi
 }
 
 install_docker_compose() {
-  sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o $COMPOSE_BIN_PATH
-  sudo chmod +x $COMPOSE_BIN_PATH
+  zpackage install docker-compose
 }
 
 start_docker() {
@@ -93,13 +99,6 @@ install_docker() {
   log "Install Docker ..."
 
   try_to_remove_podman
-
-  # Returning a boolean from a bash function
-  #   Useage
-  if is_docker_installed; then
-    create_network
-    exit 0
-  fi
 
   install_docker_core
 

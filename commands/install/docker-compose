@@ -1,6 +1,7 @@
 #!/bin/bash
-COMPOSE_BIN_PATH=/usr/bin/docker-compose
-COMPOSE_VERSION_DEFAULT=1.29.1
+COMPOSE_BIN_PATH=/usr/local/bin/docker-compose
+COMPOSE_BIN_TMP_PATH=/tmp/docker-compose
+COMPOSE_VERSION_DEFAULT=v2.0.1
 
 help() {
   echo "Usage:"
@@ -31,10 +32,26 @@ core() {
     fi
   fi
 
-  log "Install Docker Compose (${version}) ..."
+  log_info "Install Docker Compose (${version}) ..."
+  
+  local os_name=$(uname -s | awk '{print tolower($0)}')
+  local os_arch=$(uname -m)
 
-  sudo curl -L "https://github.com/docker/compose/releases/download/${version}/docker-compose-$(uname -s)-$(uname -m)" -o $COMPOSE_BIN_PATH >> $ZMICRO_LOG_COMMON_PATH 2>&1
-  sudo chmod +x $COMPOSE_BIN_PATH
+  if [ "$os_arch" = "arm64" ]; then
+    os_arch=aarch64
+  fi
+
+  log_debug "download docker-compose(${version}) from https://github.com/docker/compose/releases/download/${version}/docker-compose-${os_name}-${os_arch}"
+
+  curl -L "https://github.com/docker/compose/releases/download/${version}/docker-compose-${os_name}-${os_arch}" -o $COMPOSE_BIN_TMP_PATH # >> $ZMICRO_LOG_COMMON_PATH 2>&1
+  if [ "$?" != "0" ]; then
+    log_error "Failed to download docker-compose(${version})"
+    exit 1
+  fi
+
+  chmod +x $COMPOSE_BIN_TMP_PATH
+
+  sudo mv $COMPOSE_BIN_TMP_PATH $COMPOSE_BIN_PATH
   
   log_success "Success to install Docker Compose CLI ."
 }
