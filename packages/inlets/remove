@@ -2,7 +2,7 @@
 
 help() {
   echo "Usage:"
-  echo "  zpackage install inlets"
+  echo "  zpackage remove inlets"
   echo ""
 }
 
@@ -18,7 +18,7 @@ core() {
 
   load_nvm
 
-  pm_npm i -g @cliz/inlets
+  pm_npm remove -g @cliz/inlets
 }
 
 run() {
