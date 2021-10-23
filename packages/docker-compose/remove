@@ -2,7 +2,7 @@
 
 help() {
   echo "Usage:"
-  echo "  zmicro package install docker"
+  echo "  zmicro package remove docker-compose"
 }
 
 core() {
@@ -11,8 +11,7 @@ core() {
     exit 0
   fi
 
-  local version=$1  
-  install $version
+  remove
 }
 
 run() {

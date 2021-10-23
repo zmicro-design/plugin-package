@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export PACKAGE_DOCKER_DEFAULT_NETWORK=compose-ingress
+export PACKAGE_DOCKER_TMP_INSTALL_SCRIPT=/tmp/get-docker.sh

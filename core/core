@@ -22,9 +22,22 @@ zpackage_run() {
   fi
 
   local package_action_path=$package_path/$action
-  if [ ! -f "$package_action_path" ]; then 
-    log_error "[zpackage_run] package(${name}) found, but action(${action}) is not available"
-    exit 1
+  if [ ! -f "$package_action_path" ]; then
+    # @TODO if not found update, use install
+    if [ "$action" = "remove" ]; then
+      log_warn "[zpackage_run] package(${name}) found, but action(${action}) is not available"
+      return
+    elif [ "$action" = "update" ]; then
+      zpackage_run install $name $args
+      return
+    elif [ "$action" = "reinstall" ]; then
+      zpackage_run remove $name
+      zpackage_run install $name
+      return
+    else
+      log_error "[zpackage_run] package(${name}) found, but action(${action}) is not available"
+      exit 1
+    fi
   fi
 
   local package_config_path=$package_path/config

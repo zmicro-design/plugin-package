@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# Returning a boolean from a bash function
+#   [Solved]: Stack Overflow: https://stackoverflow.com/questions/5431909/returning-a-boolean-from-a-bash-function
+#
+is_docker_installed() {
+  which docker >> /dev/null 2>&1
+  if [ "$?" != "0" ]; then
+    log_debug "[is_docker_installed] Docker not found"
+    return 1
+  fi
+
+  DOCKER_VERSION=$(get_docker_version)
+  log_info "Docker Installed(version: ${DOCKER_VERSION})"
+  return 0
+}
+
+get_docker_version() {
+  echo $(docker version -f {{.Client.Version}})
+}
+
+is_network_exist() {
+  sudo docker network inspect $PACKAGE_DOCKER_DEFAULT_NETWORK >>/dev/null 2>&1
+  return $?
+}
+
+create_network() {
+  # sudo docker network inspect $PACKAGE_DOCKER_DEFAULT_NETWORK >>/dev/null 2>&1
+  # if [ "$?" != "0" ]; then
+  #   sudo docker network create $PACKAGE_DOCKER_DEFAULT_NETWORK
+  # fi
+
+  if ! is_network_exist; then
+    log_info "Create Network: ${PACKAGE_DOCKER_DEFAULT_NETWORK}"
+    sudo docker network create $PACKAGE_DOCKER_DEFAULT_NETWORK >> /dev/null 2>&1
+  fi
+}
+
+try_to_remove_podman() {
+  which podman >>/dev/null 2>&1
+  if [ "$?" = "0" ]; then
+    log_info "Found podman, removing ..."
+    pm remove -y podman
+
+    # Clean
+    #   1. docker
+    sudo rm -rf `which docker`
+    #   2. docker-compose
+    sudo rm -rf `which docker-compose`
+
+    # log_info "Upgrade Docker ..."
+  fi
+}
+
+install_docker_core() {
+  # Returning a boolean from a bash function
+  #   Useage
+  if is_docker_installed; then
+    create_network
+    return 
+  fi
+
+  log_info "Install Docker ..."
+  if [ "$(os_is_macos)" = "true" ]; then
+    # MacOS
+    # 1. CLI
+    brew install docker
+    # 2. Runtime
+    brew install colima
+    # 3. Start
+    colima start --cpu 4 --memory 8 --disk 100
+  else
+    # Linux
+    sudo curl -fsSL https://get.docker.com -o $PACKAGE_DOCKER_TMP_INSTALL_SCRIPT
+    sudo sh $PACKAGE_DOCKER_TMP_INSTALL_SCRIPT
+    # Role
+    sudo usermod -aG docker $USER
+    # Clean
+    sudo rm -f $PACKAGE_DOCKER_TMP_INSTALL_SCRIPT
+  fi
+}
+
+install_docker_compose() {
+  zpackage install docker-compose
+}
+
+start_docker() {
+  if [ "$(os_is_macos)" = "true" ]; then
+    return
+  fi
+
+  # Linux
+  sudo systemctl status docker >> /dev/null 2>&1
+  if [ "$?" != "0" ]; then
+    log_info "Start Docker daemon ..."
+
+    sudo systemctl enable docker
+    sudo systemctl start docker
+  fi
+}
+
+stop_docker() {
+  sudo systemctl stop docker
+  sudo systemctl disable docker
+}
+
+remove_docker_core() {
+  pm remove -y docker-ce docker-ce-cli containerd.io
+}
+
+remove_docker_compose() {
+  zpackage remove docker-compose
+}
+
+install() {
+  if [ "$(os_is_docker)" = "true" ]; then
+    log_warn "You are in docker env, use bind /var/run/docker.sock instead of."
+    return 
+  fi
+
+  try_to_remove_podman
+
+  install_docker_core
+
+  install_docker_compose
+
+  start_docker
+}
+
+remove() {
+  try_to_remove_podman
+
+  # Returning a boolean from a bash function
+  #   Useage
+  if ! is_docker_installed; then
+    log "Cannot found docker or docker has been already removed before."
+    exit 0
+  fi
+
+  log "Stop Docker Daemon ..."
+  stop_docker
+
+  log "Remove Docker ..."
+  remove_docker_core
+
+  log "Remove Docker Compose ..."
+  remove_docker_compose
+}
+
+export -f is_docker_installed
+export -f get_docker_version
+export -f is_network_exist
+export -f create_network
+export -f try_to_remove_podman
+export -f install_docker_core
+export -f install_docker_compose
+export -f start_docker
+export -f stop_docker
+export -f remove_docker_core
+export -f remove_docker_compose
+
+export -f install
+export -f remove

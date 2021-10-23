@@ -1,79 +1,8 @@
 #!/bin/bash
-COMPOSE_BIN_PATH=/usr/local/bin/docker-compose
-COMPOSE_BIN_TMP_PATH=/tmp/docker-compose
-COMPOSE_VERSION_DEFAULT=v2.0.1
 
 help() {
   echo "Usage:"
   echo "  zmicro package install docker-compose"
-}
-
-is_installed() {
-  if [ -f $COMPOSE_BIN_PATH ]; then
-    echo "true"
-  else
-    echo "false"
-  fi
-}
-
-install_v2() {
-  local version=$1
-  local os_name=$(uname -s | awk '{print tolower($0)}')
-  local os_arch=$(uname -m)
-
-  if [ "$os_arch" = "arm64" ]; then
-    os_arch=aarch64
-  fi
-
-  log_debug "download docker-compose(${version}) from https://github.com/docker/compose/releases/download/${version}/docker-compose-${os_name}-${os_arch}"
-
-  curl -L "https://github.com/docker/compose/releases/download/${version}/docker-compose-${os_name}-${os_arch}" -o $COMPOSE_BIN_TMP_PATH # >> $ZMICRO_LOG_COMMON_PATH 2>&1
-  if [ "$?" != "0" ]; then
-    log_error "Failed to download docker-compose(${version})"
-    exit 1
-  fi
-}
-
-install_v1() {
-  local version=$1
-  local os_name=$(uname -s)
-  local os_arch=$(uname -m)
-
-  if [ "$os_arch" = "arm64" ]; then
-    log_error "${version} is not support current os"
-    exit 1
-  fi
-
-  log_debug "download docker-compose(${version}) from https://github.com/docker/compose/releases/download/${version}/docker-compose-${os_name}-${os_arch}"
-
-  curl -L "https://github.com/docker/compose/releases/download/${version}/docker-compose-${os_name}-${os_arch}" -o $COMPOSE_BIN_TMP_PATH # >> $ZMICRO_LOG_COMMON_PATH 2>&1
-  if [ "$?" != "0" ]; then
-    log_error "Failed to download docker-compose(${version})"
-    exit 1
-  fi
-}
-
-install() {
-  local version=$1
-  
-  log_info "Install Docker Compose (${version}) ..."
-  
-  echo $version | grep "v2" >> /dev/null 2>&1
-  if [ "$?" != "0" ]; then
-    install_v1 $version
-  else
-    install_v2 $version
-  fi
-
-  if [ "$?" != "0" ]; then
-    log_error "Failed to download docker-compose(${version})"
-    exit 1
-  fi
-
-  # Permission
-  chmod +x $COMPOSE_BIN_TMP_PATH
-  # Bin
-  sudo mv $COMPOSE_BIN_TMP_PATH $COMPOSE_BIN_PATH
 }
 
 core() {
@@ -82,28 +11,8 @@ core() {
     exit 0
   fi
 
-  local version=$1
-  if [ -z "$version" ]; then
-    version=$COMPOSE_VERSION_DEFAULT
-  fi
-
-  if [ "$(is_installed)" = "true" ]; then
-    local current_version=$(docker-compose version --short)
-    if [ "$current_version" != "$version" ]; then
-      log_warn "Docker Compose Installed(current: ${current_version}, want: ${version})"
-    else
-      log_info "Docker Compose ${version} has already been installed"
-    fi
-    exit 0
-  fi
-  
+  local version=$1  
   install $version
-  if [ "$?" != "0" ]; then
-    log_error "Failed to download docker-compose(${version})"
-    exit 0
-  fi
-
-  log_success "Success to install Docker Compose CLI ."
 }
 
 run() {
