@@ -1,16 +1,30 @@
 #!/bin/bash
 
-remove_nodejs() {
-  NVM_DIR=$HOME/.nvm
+help() {
+  echo "Usage:"
+  echo "  zpackage remove nodejs"
+  echo ""
+}
 
+core() {
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    help
+    exit 0
+  fi
+  
+  local NVM_DIR=$PACKAGE_NODEJS_NVM_DIR
   if [ ! -d $NVM_DIR ]; then
-    echo "Nodejs has already been removed."
+    log_info "Nodejs has already been removed."
     exit 0
   fi
 
-  echo -e "Find nodejs in $NVMDIR, removing ..."
+  log_info "Find nodejs in $NVM_DIR, removing ..."
   rm -rf $NVM_DIR
-  echo "Remove nodejs done."
+  log_success "Remove nodejs done."
 }
 
-remove_nodejs
+run() {
+  core $@
+}
+
+run $@
