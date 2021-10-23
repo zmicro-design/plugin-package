@@ -50,6 +50,7 @@ zpackage_run() {
     load_config_file $package_core_path
   fi
 
+  log_info "[zpackage_run] $name $action $args"
   $package_action_path $args
 }
 
