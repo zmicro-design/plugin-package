@@ -17,9 +17,7 @@ core() {
 }
 
 run() {
-  set -e
   core $@
-  set +e
 }
 
 run $@
