@@ -27,6 +27,16 @@ zpackage_run() {
     exit 1
   fi
 
+  local package_config_path=$package_path/config
+  if [ -f $package_config_path ]; then
+    load_config_file $package_config_path
+  fi
+
+  local package_core_path=$package_path/core
+  if [ -f $package_core_path ]; then
+    load_config_file $package_core_path
+  fi
+
   $package_action_path $args
 }
 
