@@ -18,7 +18,13 @@ core() {
     exit 1
   fi
 
-  zpackage_run install $name
+  # @TODO
+  local version=""
+  if [ "$2" = "-v" ]; then
+    version=$3
+  fi
+
+  zpackage_run install $name $version
 }
 
 run() {

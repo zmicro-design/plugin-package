@@ -16,7 +16,7 @@ is_docker_installed() {
   fi
 
   DOCKER_VERSION=$(get_docker_version)
-  log_info "Found Docker(${DOCKER_VERSION})"
+  log_info "Docker Installed(version: ${DOCKER_VERSION})"
   return 0
 }
 
@@ -36,7 +36,7 @@ create_network() {
   # fi
 
   if ! is_network_exist; then
-    log "Create Network: ${DEFAULT_NETWORK}"
+    log_info "Create Network: ${DEFAULT_NETWORK}"
     sudo docker network create $DEFAULT_NETWORK >> /dev/null 2>&1
   fi
 }
@@ -44,11 +44,16 @@ create_network() {
 try_to_remove_podman() {
   which podman >>/dev/null 2>&1
   if [ "$?" = "0" ]; then
-    log "Found podman, removing ..."
+    log_info "Found podman, removing ..."
     pm remove -y podman
-    sudo rm -rf `which docker`
 
-    log "Upgrade Docker ..."
+    # Clean
+    #   1. docker
+    sudo rm -rf `which docker`
+    #   2. docker-compose
+    sudo rm -rf `which docker-compose`
+
+    # log_info "Upgrade Docker ..."
   fi
 }
 
@@ -60,6 +65,7 @@ install_docker_core() {
     return 
   fi
 
+  log_info "Install Docker ..."
   if [ "$(os_is_macos)" = "true" ]; then
     # MacOS
     # 1. CLI
@@ -72,8 +78,10 @@ install_docker_core() {
     # Linux
     sudo curl -fsSL https://get.docker.com -o $TMP_INSTALL_SCRIPT
     sudo sh $TMP_INSTALL_SCRIPT
-    # 
+    # Role
     sudo usermod -aG docker $USER
+    # Clean
+    sudo rm -f $TMP_INSTALL_SCRIPT
   fi
 }
 
@@ -82,12 +90,18 @@ install_docker_compose() {
 }
 
 start_docker() {
-  sudo systemctl enable docker
-  sudo systemctl start docker
-}
+  if [ "$(os_is_macos)" = "true" ]; then
+    return
+  fi
 
-clean() {
-  sudo rm $TMP_INSTALL_SCRIPT
+  # Linux
+  sudo systemctl status docker >> /dev/null 2>&1
+  if [ "$?" != "0" ]; then
+    log_info "Start Docker daemon ..."
+    
+    sudo systemctl enable docker
+    sudo systemctl start docker
+  fi
 }
 
 install_docker() {
@@ -96,22 +110,13 @@ install_docker() {
     return 
   fi
 
-  log "Install Docker ..."
-
   try_to_remove_podman
 
   install_docker_core
 
-  log "Install Docker Compose ..."
   install_docker_compose
 
-  log "Start Docker daemon ..."
   start_docker
-  
-  create_network
-
-  # Clean
-  clean
 }
 
 install_docker

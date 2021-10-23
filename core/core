@@ -3,6 +3,7 @@
 zpackage_run() {
   local action=$1
   local name=$2
+  local args=${@:3}
 
   if [ -z "$action" ]; then
     log_error "[zpackage_run] action is required"
@@ -26,7 +27,7 @@ zpackage_run() {
     exit 1
   fi
 
-  $package_action_path
+  $package_action_path $args
 }
 
 zpackage_list() {
