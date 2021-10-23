@@ -103,6 +103,16 @@ install_nodejs() {
 
     # no nodejs found, use default version
     version=$PACKAGE_NODEJS_DEFAILT_VERSION
+  else
+    which node >> /dev/null 2>&1
+    if [ "$?" = "0" ]; then
+      local current_version=$(node -v)
+      echo $current_version | grep $version >> /dev/null 2>&1
+      if [ "$?" = "0" ]; then
+        log_info "Load Node.js(version: ${current_version}) ..."
+        return
+      fi
+    fi
   fi
 
   log_info "Installing Node $version ..."
