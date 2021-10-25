@@ -126,7 +126,10 @@ zpackage::register() {
         log_error "[$(timestamp)][zpackage::run][bin] $source_path is not valid file"
         exit 1
       elif [ -f $target_path ]; then
-        log_error "[$(timestamp)][zpackage::run][bin] name $bin has been used"
+        local link_path=$(readlink $target_path)
+        if [ "$link_path" != "$source_path" ]; then
+          log_error "[$(timestamp)][zpackage::run][bin] name $bin has been used"
+        fi
         exit 1
       fi
 
