@@ -18,7 +18,7 @@ core() {
     exit 1
   fi
 
-  zpackage_run update $name
+  zpackage::run update $name
 }
 
 run() {

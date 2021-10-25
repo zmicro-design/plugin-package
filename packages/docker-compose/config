@@ -1,5 +1,0 @@
-#!/bin/bash
-
-export PACKAGE_DOCKER_COMPOSE_VERSION_DEFAULT=v2.0.1
-export PACKAGE_DOCKER_COMPOSE_BIN_PATH=/usr/local/bin/docker-compose
-export PACKAGE_DOCKER_COMPOSE_BIN_TMP_PATH=/tmp/docker-compose

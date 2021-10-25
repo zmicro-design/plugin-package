@@ -12,7 +12,7 @@ core() {
     exit 0
   fi
 
-  zpackage_list
+  zpackage::list
 }
 
 run() {

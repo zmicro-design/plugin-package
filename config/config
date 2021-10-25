@@ -1,1 +1,2 @@
 export PACKAGES_PATH=$ZMICRO_PLUGINS_PATH/package/packages
+export PACKAGES_REPO_PREFIX=https://github.com/zmicro-design/package-

@@ -2,7 +2,7 @@
 
 help() {
   echo "Usage:"
-  echo "  zpackage remove inlets"
+  echo "  zpackage description <package>"
   echo ""
 }
 
@@ -12,13 +12,13 @@ core() {
     exit 0
   fi
   
-  if [ "$(is_nodejs_installed)" = "false" ]; then
-    zpackage install nodejs
+  local name=$1
+  if [ -z "$name" ]; then
+    log_error "package name is requried"
+    exit 1
   fi
 
-  load_nvm
-
-  pm_npm remove -g @cliz/inlets
+  zpackage::description $name
 }
 
 run() {

@@ -2,7 +2,7 @@
 
 help() {
   echo "Usage:"
-  echo "  zpackage install nodejs"
+  echo "  zpackage version <package>"
   echo ""
 }
 
@@ -12,15 +12,13 @@ core() {
     exit 0
   fi
   
-  local version=$1
+  local name=$1
+  if [ -z "$name" ]; then
+    log_error "package name is requried"
+    exit 1
+  fi
 
-  config_profile
-
-  install_nvm
-
-  install_nodejs $version
-
-  install_packages
+  zpackage::version $name
 }
 
 run() {
