@@ -1,0 +1,21 @@
+#!/bin/bash
+
+help() {
+  echo "Usage:"
+  echo "  zmicro tldr [options]"
+}
+
+core() {
+  which tldr >>/dev/null 2>&1
+  if [ "$?" != "0" ]; then
+    zmicro package install tldr
+  fi
+
+  tldr $@
+}
+
+run() {
+  core $@
+}
+
+run $@
