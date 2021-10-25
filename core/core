@@ -40,18 +40,83 @@ zpackage_run() {
     fi
   fi
 
+  # 1. Before Run Action
+  # 1.1 Load Config
   local package_config_path=$package_path/config
   if [ -f $package_config_path ]; then
     load_config_file $package_config_path
   fi
 
+  # 1.2 Load Core
   local package_core_path=$package_path/core
   if [ -f $package_core_path ]; then
     load_config_file $package_core_path
   fi
 
+  # 2. Run Action => install / remove / update / reinstall
   log_info "[zpackage_run] $name $action $args"
   $package_action_path $args
+
+  # 3. After Run Action
+  # 3.1 Register / Remove Bin
+  local package_bin_zmicro_path=$package_path/bin/zmicro
+  if [ -d $package_bin_zmicro_path ]; then
+    after_run_action() {
+      local index=$1
+      local bin=$2
+      local source_path=$package_path/bin/zmicro/$bin
+      local target_path=$ZMICRO_HOME/bin/sub/$bin
+
+      register() {
+        if [ ! -f $source_path ]; then
+          log_error "[zpackage_run][bin] $source_path is not valid file"
+          exit 1
+        elif [ -f $target_path ]; then
+          log_error "[zpackage_run][bin] name $bin has been used"
+          exit 1
+        fi
+
+        log_success "[zpackage_run] register zmicro bin: ${bin}"
+        ln -s $source_path $target_path
+      }
+
+      unregister() {
+        if [ ! -f $source_path ]; then
+          log_error "[zpackage_run][bin] $source_path is not valid file"
+          exit 1
+        elif [ ! -f $target_path ]; then
+          log_warn "[zpackage_run][bin] name $bin not found or removed"
+          return
+        fi
+
+        log_success "[zpackage_run] unregister zmicro bin: ${bin}"
+        unlink $target_path
+      }
+
+      case $action in
+        install)
+          register
+          ;;
+        remove)
+          unregister
+          ;;
+        reinstall)
+          unregister
+          register
+          ;;
+        update)
+          unregister
+          register
+          ;;
+        *)
+          log_error "[zpackage_run] Unkown action(${action}) in ${action} ${name} ${args}"
+          exit 1
+          ;;
+      esac
+    }
+
+    array_each after_run_action $(ls $package_bin_zmicro_path)
+  fi
 }
 
 zpackage_list() {
