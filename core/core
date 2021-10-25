@@ -170,6 +170,45 @@ zpackage::unregister() {
   fi
 }
 
+zpackage::clone() {
+  local name=$1
+  local version=$2
+  local args=${@:3}
+
+  if [ -z "$name" ]; then
+    log_error "[$(timestamp)][zpackage::clone] name is required"
+    exit 1
+  fi
+
+  if [ -z "$version" ]; then
+    version=master
+  fi
+
+  local package_path=$(zpackage::get_package_path $name)
+  local package_repo_url=$(zpackage::get_package_repo_url $name)
+  if [ ! -d "$package_path" ]; then
+    curl -I $package_repo_url 2>>/dev/null | head -n 1 | grep 404 >>/dev/null 2>&1
+    if [ "$?" = "0" ]; then
+      log_error "[$(timestamp)][zpackage::clone] package ${name} is not available"
+      exit 1
+    fi
+
+    git clone $package_repo_url -b $version $package_path >>$ZMICRO_LOG_COMMON_PATH # 2>>$ZMICRO_LOG_ERROR_PATH
+    if [ "$?" != "0" ]; then
+      log_error "[$(timestamp)][zpackage::clone] error $name($version) ..."
+      exit 1
+    fi
+  else
+    cd $package_path
+    git pull origin master >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
+    if [ "$?" != "0" ]; then
+      echo "[$(timestamp)][zpackage::clone] update package repo ${name} ..."
+      tail -n 50 $ZMICRO_LOG_ERROR_PATH
+      exit -1
+    fi
+  fi
+}
+
 zpackage::install() {
   local name=$1
   local version=$2
@@ -184,30 +223,9 @@ zpackage::install() {
     version=master
   fi
 
+  zpackage::clone $name $version $args
+
   local package_path=$(zpackage::get_package_path $name)
-  local package_repo_url=$(zpackage::get_package_repo_url $name)
-  if [ ! -d "$package_path" ]; then
-    curl -I $package_repo_url 2>>/dev/null | head -n 1 | grep 404 >>/dev/null 2>&1
-    if [ "$?" = "0" ]; then
-      log_error "[$(timestamp)][zpackage::install] package ${name} is not available"
-      exit 1
-    fi
-
-    git clone $package_repo_url -b $version $package_path >>$ZMICRO_LOG_COMMON_PATH # 2>>$ZMICRO_LOG_ERROR_PATH
-    if [ "$?" != "0" ]; then
-      log_error "[$(timestamp)][zpackage::install] error $name($version) ..."
-      exit 1
-    fi
-  else
-    cd $package_path
-    git pull origin master >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
-    if [ "$?" != "0" ]; then
-      echo "[$(timestamp)][zpackage::install] update package repo ${name} ..."
-      tail -n 50 $ZMICRO_LOG_ERROR_PATH
-      exit -1
-    fi
-  fi
-
   local action=install
   local package_action_path=$package_path/$action
   if [ ! -f "$package_action_path" ]; then
@@ -244,7 +262,8 @@ zpackage::remove() {
   local package_path=$(zpackage::get_package_path $name)
   if [ ! -d "$package_path" ]; then
     log_error "[$(timestamp)][zpackage::remove] package(${name}) not found"
-    exit 1
+    # exit 1
+    return 
   fi
 
   local action=remove
@@ -271,6 +290,83 @@ zpackage::remove() {
   log_success "[$(timestamp)][zpackage::remove][done] $name"
 }
 
+zpackage::update() {
+  local name=$1
+  local version=$2
+  local args=${@:3}
+
+  if [ -z "$name" ]; then
+    log_error "[$(timestamp)][zpackage::update] name is required"
+    exit 1
+  fi
+
+  if [ -z "$version" ]; then
+    version=master
+  fi
+
+  local package_path=$(zpackage::get_package_path $name)
+  local package_repo_url=$(zpackage::get_package_repo_url $name)
+  if [ ! -d "$package_path" ]; then
+    log_error "[$(timestamp)][zpackage::update] package($name) not found"
+    exit 1
+  fi
+
+  cd $package_path
+  git pull origin master >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
+  if [ "$?" != "0" ]; then
+    echo "[$(timestamp)][zpackage::update] update package repo ${name} ..."
+    tail -n 50 $ZMICRO_LOG_ERROR_PATH
+    exit -1
+  fi
+
+  local action=update
+  local package_action_path=$package_path/$action
+  if [ ! -f "$package_action_path" ]; then
+    log_error "[$(timestamp)][zpackage::update] package(${name}) found, but action(${action}) is not available"
+    exit 1
+  fi
+
+  # 1. Before Run Action
+  # 1.1 Load Config
+  zpackage::load_config $name
+
+  # 1.2 Load Core
+  zpackage::load_core $name
+
+  log_info "[$(timestamp)][zpackage::update] $name ..."
+  $package_action_path $args
+
+  # 3. After Run Action
+  zpackage::register $name
+
+  local version=$(zpackage::version $name)
+  log_success "[$(timestamp)][zpackage::update][done] $name($version) ..."
+}
+
+zpackage::reinstall() {
+  local name=$1
+  if [ -z "$name" ]; then
+    log_error "[$(timestamp)][zpackage::reinstall] name is required"
+    exit 1
+  fi
+
+  log_info "[$(timestamp)][zpackage::reinstall] $name ..."
+
+  local package_path=$(zpackage::get_package_path $name)
+  zpackage::clone $name
+
+  local action=reinstall
+  local package_action_path=$package_path/$action
+  if [ ! -f "$package_action_path" ]; then
+    zpackage::install $name
+  else
+    $package_action_path $args
+  fi
+
+  local version=$(zpackage::version $name)
+  log_success "[$(timestamp)][zpackage::reinstall][done] $name($version) ..."
+}
+
 zpackage::run() {
   local action=$1
   local name=$2
@@ -286,31 +382,6 @@ zpackage::run() {
     exit 1
   fi
 
-  # local package_path=$(zpackage::get_package_path $name)
-  # if [ ! -d "$package_path" ]; then
-  #   log_error "[$(timestamp)][zpackage::run] package(${name}) is not available"
-  #   exit 1
-  # fi
-
-  # local package_action_path=$package_path/$action
-  # if [ ! -f "$package_action_path" ]; then
-  #   # @TODO if not found update, use install
-  #   if [ "$action" = "remove" ]; then
-  #     log_warn "[$(timestamp)][zpackage::run] package(${name}) found, but action(${action}) is not available"
-  #     return
-  #   elif [ "$action" = "update" ]; then
-  #     zpackage::run install $name $args
-  #     return
-  #   elif [ "$action" = "reinstall" ]; then
-  #     zpackage::run remove $name
-  #     zpackage::run install $name
-  #     return
-  #   else
-  #     log_error "[$(timestamp)][zpackage::run] package(${name}) found, but action(${action}) is not available"
-  #     exit 1
-  #   fi
-  # fi
-
   # 2. Run Action => install / remove / update / reinstall
   log_debug "[$(timestamp)][zpackage::run] $name $action $args"
   case $action in
@@ -321,12 +392,10 @@ zpackage::run() {
       zpackage::remove $name
       ;;
     reinstall)
-      zpackage::remove $name
-      zpackage::install $name
+      zpackage::reinstall $name
       ;;
     update)
-      zpackage::remove $name
-      zpackage::install $name
+      zpackage::update $name
       ;;
     *)
       log_error "[$(timestamp)][zpackage::run] unkown action(${action}) in ${action} ${name} ${args}"
@@ -392,8 +461,12 @@ export -f zpackage::load_core
 export -f zpackage::register
 export -f zpackage::unregister
 
+export -f zpackage::clone
+
 export -f zpackage::install
 export -f zpackage::remove
+export -f zpackage::update
+export -f zpackage::reinstall
 
 export -f zpackage::run
 export -f zpackage::list
