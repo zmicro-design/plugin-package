@@ -133,7 +133,7 @@ zpackage::register() {
         exit 1
       fi
 
-      log_success "[$(timestamp)][zpackage::run] register zmicro bin: ${bin}"
+      log_success "[$(timestamp)][zpackage::run] register zmicro bin: $(color_green ${bin})"
       ln -s $source_path $target_path
     }
 
@@ -165,7 +165,7 @@ zpackage::unregister() {
         return
       fi
 
-      log_success "[$(timestamp)][zpackage::run] unregister zmicro bin: ${bin}"
+      log_success "[$(timestamp)][zpackage::run] unregister zmicro bin: $(color_red ${bin})"
       unlink $target_path
     }
 
@@ -276,7 +276,8 @@ zpackage::remove() {
     exit 1
   fi
 
-  zpackage::unregister $name
+  log_info "[$(timestamp)][zpackage::remove] $name"
+
 
   # 1. Before Run Action
   # 1.1 Load Config
@@ -285,7 +286,10 @@ zpackage::remove() {
   # 1.2 Load Core
   zpackage::load_core $name
 
-  log_info "[$(timestamp)][zpackage::remove] $name"
+  # 2. Run Action
+  # 2.1 Unregister bin
+  zpackage::unregister $name
+  # 2.2 Run Action
   $package_action_path $args
 
   rm -rf $package_path
