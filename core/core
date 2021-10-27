@@ -330,8 +330,10 @@ zpackage::update() {
   local action=update
   local package_action_path=$package_path/$action
   if [ ! -f "$package_action_path" ]; then
-    log::error "[$(timestamp)][zpackage::update] package(${name}) found, but action(${action}) is not available"
-    exit 1
+    # log::error "[$(timestamp)][zpackage::update] package(${name}) found, but action(${action}) is not available"
+    # exit 1
+    zpackage::install $name $version $args
+    return
   fi
 
   # 1. Before Run Action
