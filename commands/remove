@@ -14,7 +14,7 @@ core() {
   
   local name=$1
   if [ -z "$name" ]; then
-    log_error "package name is requried"
+    log::error "package name is requried"
     exit 1
   fi
 
