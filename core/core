@@ -129,8 +129,9 @@ zpackage::register() {
         local link_path=$(readlink $target_path)
         if [ "$link_path" != "$source_path" ]; then
           log::error "[$(timestamp)][zpackage::run][bin] name $bin has been used"
+          exit 1
         fi
-        exit 1
+        return
       fi
 
       log::success "[$(timestamp)][zpackage::run] register zmicro bin: $(color::green ${bin})"
