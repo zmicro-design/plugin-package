@@ -245,7 +245,7 @@ zpackage::install() {
   zpackage::load_core $name
 
   log::info "[$(timestamp)][zpackage::install] $name ..."
-  $package_action_path $args
+  $package_action_path $2 $args
 
   # 3. After Run Action
   zpackage::register $name
@@ -396,16 +396,16 @@ zpackage::run() {
   log::debug "[$(timestamp)][zpackage::run] $name $action $args"
   case $action in
     install)
-      zpackage::install $name
+      zpackage::install $name $args
       ;;
     remove)
-      zpackage::remove $name
+      zpackage::remove $name $args
       ;;
     reinstall)
-      zpackage::reinstall $name
+      zpackage::reinstall $name $args
       ;;
     update)
-      zpackage::update $name
+      zpackage::update $name $args
       ;;
     *)
       log::error "[$(timestamp)][zpackage::run] unkown action(${action}) in ${action} ${name} ${args}"
