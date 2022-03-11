@@ -378,6 +378,8 @@ zpackage::reinstall() {
 }
 
 zpackage::run() {
+  zpackage::force_sudo
+
   local action=$1
   local name=$2
   local args=${@:3}
@@ -456,6 +458,11 @@ zpackage::description() {
   echo $DESCRIPTION
 }
 
+zpackage::force_sudo() {
+  # use force sudo to get required permissions
+  sudo ps >> /dev/null 2>&1
+}
+
 export -f zpackage::get_package_path
 export -f zpackage::get_package_repo_url
 
@@ -485,3 +492,5 @@ export -f zpackage::version
 export -f zpackage::description
 
 # export -f zpackage::release
+
+export -f zpackage::force_sudo
