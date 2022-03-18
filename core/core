@@ -223,7 +223,16 @@ zpackage::install() {
     exit 1
   fi
 
+  # @FEAT support: zmicro package install $name@$version
+  # @example zmicro package install name@version
+  if [ "$(string::match $name @)" ]; then
+    version=$(echo $name | awk -F@ '{print $2}')
+    name=$(echo $name | awk -F@ '{print $1}')
+  fi
+
   if [ -z "$version" ]; then
+    version=master
+  elif [ "$version" = "latest" ]; then
     version=master
   fi
 
