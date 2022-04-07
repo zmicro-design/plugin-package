@@ -225,7 +225,7 @@ zpackage::install() {
 
   # @FEAT support: zmicro package install $name@$version
   # @example zmicro package install name@version
-  if [ "$(string::match $name @)" ]; then
+  if [ "$(string::match $name @)" = "true" ]; then
     version=$(echo $name | awk -F@ '{print $2}')
     name=$(echo $name | awk -F@ '{print $1}')
   fi
@@ -253,7 +253,7 @@ zpackage::install() {
   # 1.2 Load Core
   zpackage::load_core $name
 
-  log::info "[$(timestamp)][zpackage::install] $name ..."
+  log::info "[$(timestamp)][zpackage::install] $name($version) ..."
   $package_action_path $2 $args
 
   # 3. After Run Action

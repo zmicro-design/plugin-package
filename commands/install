@@ -2,7 +2,7 @@
 
 help() {
   echo "Usage:"
-  echo "  zpackage install <package>"
+  echo "  zpackage install <package>[@<version>]"
   echo ""
 }
 
@@ -22,6 +22,11 @@ core() {
   local version=""
   if [ "$2" = "-v" ]; then
     version=$3
+  fi
+
+  if [ "$(version::at $name)" = "true" ]; then
+    version=$(version::at_version $name)
+    name=$(version::at_name $name)
   fi
 
   zpackage::run install $name $version
