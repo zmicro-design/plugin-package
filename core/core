@@ -273,7 +273,9 @@ zpackage::install() {
   zpackage::load_core $name
 
   log::info "[$(timestamp)][zpackage::install] $name($version) ..."
-  $package_action_path $2 $args
+  # @FIX donot pass version
+  # $package_action_path $version $args
+  $package_action_path $args
 
   # 3. After Run Action
   zpackage::register $name
