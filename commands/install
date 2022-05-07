@@ -13,14 +13,13 @@ core() {
   fi
   
   local name=$1
+  local version=$2
   if [ -z "$name" ]; then
     log::error "package name is requried"
     exit 1
   fi
 
-  # @TODO
-  local version=""
-  if [ "$2" = "-v" ]; then
+  if [ "$version" = "-v" ]; then
     version=$3
   fi
 
