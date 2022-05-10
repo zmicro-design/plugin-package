@@ -15,6 +15,7 @@ core() {
   zmicro package install vim
   zmicro package install tmux
   zmicro package install docker
+  zmicro package install docker-compose@v1
 }
 
 run() {
