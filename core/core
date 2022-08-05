@@ -266,7 +266,11 @@ zpackage::install() {
     version=master
   fi
 
-  zpackage::clone $name $version $args
+  if [ -n "$NO_PULL" ]; then
+    echo "no pull code" >> /dev/null 2>&1
+  else
+    zpackage::clone $name $version $args
+  fi
 
   local package_path=$(zpackage::get_package_path $name)
   local action=install
