@@ -22,18 +22,18 @@ core() {
 
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::release] name is required"
+    log::error "[$(timestamp)][package::release] name is required"
     exit 1
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
+  local package_path=$(package::get_path $name)
   if [ ! -d "$package_path" ]; then
-    log::error "[$(timestamp)][zpackage::release] package(${name}) not found"
+    log::error "[$(timestamp)][package::release] package(${name}) not found"
     exit 1
   fi
 
   cd $package_path
-  local origin_version=$(zpackage::version $name)
+  local origin_version=$(package::version $name)
   required() {
     if [ "$1" = "" ]; then
       echo false

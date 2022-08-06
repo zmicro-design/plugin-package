@@ -28,7 +28,7 @@ core() {
     name=$(version::at_name $name)
   fi
 
-  zpackage::run install $name $version
+  package::run install $name $version
 }
 
 run() {

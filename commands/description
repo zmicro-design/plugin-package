@@ -18,7 +18,7 @@ core() {
     exit 1
   fi
 
-  zpackage::description $name
+  package::description $name
 }
 
 run() {

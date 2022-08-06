@@ -1,0 +1,36 @@
+#!/bin/bash
+
+help() {
+  echo "Usage:"
+  echo "  zpackage go <package_name>"
+}
+
+core() {
+  if [ "$1" = "" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    help
+    exit 0
+  fi
+
+  # @TODO
+  local package=$1
+  # local module=$2
+  # if [ "$module" = "config" ]; then
+  #   local package_config_path=$PLUGIN_PACKAGE_CONFIGS/$package
+  #   cd $package_config_path
+  #   exec $SHELL
+  #   exit 0
+  # elif [ "$module" = "data" ]; then
+  #   local package_data_path=$PLUGIN_PACKAGE_DATA/$package
+  #   cd $package_data_path
+  #   exec $SHELL
+  #   exit 0
+  # fi
+  
+  zpackage cd $@
+}
+
+run() {
+  core $@
+}
+
+run $@

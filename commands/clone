@@ -24,7 +24,7 @@ core() {
     version=$3
   fi
 
-  zpackage::clone $name $version
+  package::clone $name $version
 }
 
 run() {

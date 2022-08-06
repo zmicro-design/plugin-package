@@ -1,120 +1,120 @@
 #!/bin/bash
 
-zpackage::get_package_path() {
+package::get_path() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::get_package_path] name is required"
+    log::error "[$(timestamp)][package::get_path] name is required"
     exit 1
   fi
 
   echo $PACKAGES_PATH/$name
 }
 
-zpackage::get_package_repo_url() {
+package::get_package_repo_url() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::get_package_repo_url] name is required"
+    log::error "[$(timestamp)][package::get_package_repo_url] name is required"
     exit 1
   fi
 
   echo ${PACKAGES_REPO_PREFIX}${name}
 }
 
-zpackage::get_mod_path() {
+package::get_mod_path() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::get_mod_path] name is required"
+    log::error "[$(timestamp)][package::get_mod_path] name is required"
     exit 1
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
+  local package_path=$(package::get_path $name)
   echo $package_path/mod
 }
 
-zpackage::get_config_path() {
+package::get_config_path() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::get_config_path] name is required"
+    log::error "[$(timestamp)][package::get_config_path] name is required"
     exit 1
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
+  local package_path=$(package::get_path $name)
   echo $package_path/config
 }
 
-zpackage::get_core_path() {
+package::get_core_path() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::get_core_path] name is required"
+    log::error "[$(timestamp)][package::get_core_path] name is required"
     exit 1
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
+  local package_path=$(package::get_path $name)
   echo $package_path/core
 }
 
-zpackage::get_bin_zmicro_path() {
+package::get_bin_zmicro_path() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::get_bin_zmicro_path] name is required"
+    log::error "[$(timestamp)][package::get_bin_zmicro_path] name is required"
     exit 1
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
+  local package_path=$(package::get_path $name)
   echo $package_path/bin/zmicro
 }
 
-zpackage::load_mod() {
+package::load_mod() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::load_mod] name is required"
+    log::error "[$(timestamp)][package::load_mod] name is required"
     exit 1
   fi
 
-  local package_mod_path=$(zpackage::get_mod_path $name)
+  local package_mod_path=$(package::get_mod_path $name)
   if [ ! -f $package_mod_path ]; then
-    log::error "[$(timestamp)][zpackage::load_mod] name is required"
+    log::error "[$(timestamp)][package::load_mod] name is required"
     exit 1
   fi
 
   config::load_file $package_mod_path
 }
 
-zpackage::load_config() {
+package::load_config() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::load_config] name is required"
+    log::error "[$(timestamp)][package::load_config] name is required"
     exit 1
   fi
 
-  local config_path=$(zpackage::get_config_path $name)
+  local config_path=$(package::get_config_path $name)
   if [ -f $config_path ]; then
     config::load_file $config_path
   fi
 }
 
-zpackage::load_core() {
+package::load_core() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::load_core] name is required"
+    log::error "[$(timestamp)][package::load_core] name is required"
     exit 1
   fi
 
-  local core_path=$(zpackage::get_core_path $name)
+  local core_path=$(package::get_core_path $name)
   if [ -f $core_path ]; then
     config::load_file $core_path
   fi
 }
 
-zpackage::register() {
+package::register() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::register] name is required"
+    log::error "[$(timestamp)][package::register] name is required"
     exit 1
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
-  local package_bin_zmicro_path=$(zpackage::get_bin_zmicro_path $name)
+  local package_path=$(package::get_path $name)
+  local package_bin_zmicro_path=$(package::get_bin_zmicro_path $name)
   if [ -d $package_bin_zmicro_path ]; then
     run() {
       local index=$1
@@ -123,18 +123,18 @@ zpackage::register() {
       local target_path=$ZMICRO_HOME/bin/sub/$bin
 
       if [ ! -f $source_path ]; then
-        log::error "[$(timestamp)][zpackage::run][bin] $source_path is not valid file"
+        log::error "[$(timestamp)][package::run][bin] $source_path is not valid file"
         exit 1
       elif [ -f $target_path ]; then
         local link_path=$(readlink $target_path)
         if [ "$link_path" != "$source_path" ]; then
-          log::error "[$(timestamp)][zpackage::run][bin] name $bin has been used"
+          log::error "[$(timestamp)][package::run][bin] name $bin has been used"
           exit 1
         fi
         return
       fi
 
-      log::success "[$(timestamp)][zpackage::run] register zmicro bin: $(color::green ${bin})"
+      log::success "[$(timestamp)][package::run] register zmicro bin: $(color::green ${bin})"
       ln -s $source_path $target_path
     }
 
@@ -142,15 +142,15 @@ zpackage::register() {
   fi
 }
 
-zpackage::unregister() {
+package::unregister() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::unregister] name is required"
+    log::error "[$(timestamp)][package::unregister] name is required"
     exit 1
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
-  local package_bin_zmicro_path=$(zpackage::get_bin_zmicro_path $name)
+  local package_path=$(package::get_path $name)
+  local package_bin_zmicro_path=$(package::get_bin_zmicro_path $name)
   if [ -d $package_bin_zmicro_path ]; then
     run() {
       local index=$1
@@ -159,14 +159,14 @@ zpackage::unregister() {
       local target_path=$ZMICRO_HOME/bin/sub/$bin
 
       if [ ! -f $source_path ]; then
-        log::error "[$(timestamp)][zpackage::run][bin] $source_path is not valid file"
+        log::error "[$(timestamp)][package::run][bin] $source_path is not valid file"
         exit 1
       elif [ ! -f $target_path ]; then
-        log::warn "[$(timestamp)][zpackage::run][bin] name $bin not found or removed"
+        log::warn "[$(timestamp)][package::run][bin] name $bin not found or removed"
         return
       fi
 
-      log::success "[$(timestamp)][zpackage::run] unregister zmicro bin: $(color::red ${bin})"
+      log::success "[$(timestamp)][package::run] unregister zmicro bin: $(color::red ${bin})"
       unlink $target_path
     }
 
@@ -174,7 +174,7 @@ zpackage::unregister() {
   fi
 }
 
-zpackage::clone() {
+package::clone() {
   local name=$1
   local version=$2
   local args=${@:3}
@@ -182,7 +182,7 @@ zpackage::clone() {
   local error_log=$(os::tmp_file)
 
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::clone] name is required"
+    log::error "[$(timestamp)][package::clone] name is required"
     exit 1
   fi
 
@@ -190,18 +190,18 @@ zpackage::clone() {
     version=master
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
-  local package_repo_url=$(zpackage::get_package_repo_url $name)
+  local package_path=$(package::get_path $name)
+  local package_repo_url=$(package::get_package_repo_url $name)
   if [ ! -d "$package_path" ]; then
     curl -I $package_repo_url 2>>/dev/null | head -n 1 | grep 404 >>/dev/null 2>&1
     if [ "$?" = "0" ]; then
-      log::error "[$(timestamp)][zpackage::clone] package ${name} is not available"
+      log::error "[$(timestamp)][package::clone] package ${name} is not available"
       exit 1
     fi
 
     git clone $package_repo_url -b $version $package_path >>$ZMICRO_LOG_COMMON_PATH 2>$error_log
     if [ "$?" != "0" ]; then
-      log::error "[$(timestamp)][zpackage::clone] error $name($version) ..."
+      log::error "[$(timestamp)][package::clone] error $name($version) ..."
       cat $error_log
       exit 1
     fi
@@ -212,7 +212,7 @@ zpackage::clone() {
       # git fetch origin $version >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
       git fetch origin >> $ZMICRO_LOG_UPDATE_PATH 2>$error_log
       if [ "$?" != "0" ]; then
-        echo "[$(timestamp)][zpackage::clone] git fetch error ${name} ..."
+        echo "[$(timestamp)][package::clone] git fetch error ${name} ..."
         cat $error_log
         exit -1
       fi
@@ -227,7 +227,7 @@ zpackage::clone() {
       # 2. checkout tag branch
       git checkout -b $version $tag >> $ZMICRO_LOG_UPDATE_PATH 2>$error_log
       if [ "$?" != "0" ]; then
-        echo "[$(timestamp)][zpackage::clone] git checkout error ${name} ..."
+        echo "[$(timestamp)][package::clone] git checkout error ${name} ..."
         cat $error_log
         exit -1
       fi
@@ -236,20 +236,20 @@ zpackage::clone() {
     # 3. update tag branch
     git pull origin $version >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
     if [ "$?" != "0" ]; then
-      echo "[$(timestamp)][zpackage::clone] update package repo ${name} ..."
+      echo "[$(timestamp)][package::clone] update package repo ${name} ..."
       tail -n 50 $ZMICRO_LOG_ERROR_PATH
       exit -1
     fi
   fi
 }
 
-zpackage::install() {
+package::install() {
   local name=$1
   local version=$2
   local args=${@:3}
 
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::install] name is required"
+    log::error "[$(timestamp)][package::install] name is required"
     exit 1
   fi
 
@@ -269,48 +269,48 @@ zpackage::install() {
   if [ -n "$NO_PULL" ]; then
     echo "no pull code" >> /dev/null 2>&1
   else
-    zpackage::clone $name $version $args
+    package::clone $name $version $args
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
+  local package_path=$(package::get_path $name)
   local action=install
   local package_action_path=$package_path/$action
   if [ ! -f "$package_action_path" ]; then
-    log::error "[$(timestamp)][zpackage::install] package(${name}) found, but action(${action}) is not available"
+    log::error "[$(timestamp)][package::install] package(${name}) found, but action(${action}) is not available"
     exit 1
   fi
 
   # 1. Before Run Action
   # 1.1 Load Config
-  zpackage::load_config $name
+  package::load_config $name
 
   # 1.2 Load Core
-  zpackage::load_core $name
+  package::load_core $name
 
-  log::info "[$(timestamp)][zpackage::install] $name($version) ..."
+  log::info "[$(timestamp)][package::install] $name($version) ..."
   # @FIX donot pass version
   # $package_action_path $version $args
   $package_action_path $args
 
   # 3. After Run Action
-  zpackage::register $name
+  package::register $name
 
-  local version=$(zpackage::version $name)
-  log::success "[$(timestamp)][zpackage::install][done] $name($version) ..."
+  local version=$(package::version $name)
+  log::success "[$(timestamp)][package::install][done] $name($version) ..."
 }
 
-zpackage::remove() {
+package::remove() {
   local name=$1
   local args=${@:2}
 
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::remove] name is required"
+    log::error "[$(timestamp)][package::remove] name is required"
     exit 1
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
+  local package_path=$(package::get_path $name)
   if [ ! -d "$package_path" ]; then
-    log::error "[$(timestamp)][zpackage::remove] package(${name}) not found"
+    log::error "[$(timestamp)][package::remove] package(${name}) not found"
     # exit 1
     return 
   fi
@@ -318,38 +318,38 @@ zpackage::remove() {
   local action=remove
   local package_action_path=$package_path/$action
   if [ ! -f "$package_action_path" ]; then
-    log::error "[$(timestamp)][zpackage::remove] package(${name}) found, but action(${action}) is not available"
+    log::error "[$(timestamp)][package::remove] package(${name}) found, but action(${action}) is not available"
     exit 1
   fi
 
-  log::info "[$(timestamp)][zpackage::remove] $name"
+  log::info "[$(timestamp)][package::remove] $name"
 
 
   # 1. Before Run Action
   # 1.1 Load Config
-  zpackage::load_config $name
+  package::load_config $name
 
   # 1.2 Load Core
-  zpackage::load_core $name
+  package::load_core $name
 
   # 2. Run Action
   # 2.1 Unregister bin
-  zpackage::unregister $name
+  package::unregister $name
   # 2.2 Run Action
   $package_action_path $args
 
   rm -rf $package_path
 
-  log::success "[$(timestamp)][zpackage::remove][done] $name"
+  log::success "[$(timestamp)][package::remove][done] $name"
 }
 
-zpackage::update() {
+package::update() {
   local name=$1
   local version=$2
   local args=${@:3}
 
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::update] name is required"
+    log::error "[$(timestamp)][package::update] name is required"
     exit 1
   fi
 
@@ -357,17 +357,17 @@ zpackage::update() {
     version=master
   fi
 
-  local package_path=$(zpackage::get_package_path $name)
-  local package_repo_url=$(zpackage::get_package_repo_url $name)
+  local package_path=$(package::get_path $name)
+  local package_repo_url=$(package::get_package_repo_url $name)
   if [ ! -d "$package_path" ]; then
-    log::error "[$(timestamp)][zpackage::update] package($name) not found"
+    log::error "[$(timestamp)][package::update] package($name) not found"
     exit 1
   fi
 
   cd $package_path
   git pull origin master >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
   if [ "$?" != "0" ]; then
-    echo "[$(timestamp)][zpackage::update] update package repo ${name} ..."
+    echo "[$(timestamp)][package::update] update package repo ${name} ..."
     tail -n 50 $ZMICRO_LOG_ERROR_PATH
     exit -1
   fi
@@ -375,93 +375,93 @@ zpackage::update() {
   local action=update
   local package_action_path=$package_path/$action
   if [ ! -f "$package_action_path" ]; then
-    # log::error "[$(timestamp)][zpackage::update] package(${name}) found, but action(${action}) is not available"
+    # log::error "[$(timestamp)][package::update] package(${name}) found, but action(${action}) is not available"
     # exit 1
-    zpackage::install $name $version $args
+    package::install $name $version $args
     return
   fi
 
   # 1. Before Run Action
   # 1.1 Load Config
-  zpackage::load_config $name
+  package::load_config $name
 
   # 1.2 Load Core
-  zpackage::load_core $name
+  package::load_core $name
 
-  log::info "[$(timestamp)][zpackage::update] $name ..."
+  log::info "[$(timestamp)][package::update] $name ..."
   $package_action_path $args
 
   # 3. After Run Action
-  zpackage::register $name
+  package::register $name
 
-  local version=$(zpackage::version $name)
-  log::success "[$(timestamp)][zpackage::update][done] $name($version) ..."
+  local version=$(package::version $name)
+  log::success "[$(timestamp)][package::update][done] $name($version) ..."
 }
 
-zpackage::reinstall() {
+package::reinstall() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::reinstall] name is required"
+    log::error "[$(timestamp)][package::reinstall] name is required"
     exit 1
   fi
 
-  log::info "[$(timestamp)][zpackage::reinstall] $name ..."
+  log::info "[$(timestamp)][package::reinstall] $name ..."
 
-  local package_path=$(zpackage::get_package_path $name)
-  zpackage::clone $name
+  local package_path=$(package::get_path $name)
+  package::clone $name
 
   local action=reinstall
   local package_action_path=$package_path/$action
   if [ ! -f "$package_action_path" ]; then
-    zpackage::install $name
+    package::install $name
   else
     $package_action_path $args
   fi
 
-  local version=$(zpackage::version $name)
-  log::success "[$(timestamp)][zpackage::reinstall][done] $name($version) ..."
+  local version=$(package::version $name)
+  log::success "[$(timestamp)][package::reinstall][done] $name($version) ..."
 }
 
-zpackage::run() {
-  zpackage::force_sudo
+package::run() {
+  package::force_sudo
 
   local action=$1
   local name=$2
   local args=${@:3}
 
   if [ -z "$action" ]; then
-    log::error "[$(timestamp)][zpackage::run] action is required"
+    log::error "[$(timestamp)][package::run] action is required"
     exit 1
   fi
 
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::run] name is required"
+    log::error "[$(timestamp)][package::run] name is required"
     exit 1
   fi
 
   # 2. Run Action => install / remove / update / reinstall
-  log::debug "[$(timestamp)][zpackage::run] $name $action $args"
+  log::debug "[$(timestamp)][package::run] $name $action $args"
   case $action in
     install)
-      zpackage::install $name $args
+      package::install $name $args
       ;;
     remove)
-      zpackage::remove $name $args
+      package::remove $name $args
       ;;
     reinstall)
-      zpackage::reinstall $name $args
+      package::reinstall $name $args
       ;;
     update)
-      zpackage::update $name $args
+      package::update $name $args
       ;;
     *)
-      log::error "[$(timestamp)][zpackage::run] unkown action(${action}) in ${action} ${name} ${args}"
+      log::error "[$(timestamp)][package::run] unkown action(${action}) in ${action} ${name} ${args}"
       exit 1
       ;;
   esac
 }
 
-zpackage::list() {
+package::list() {
   local packages=$(ls $PACKAGES_PATH)
   local index=1
   for name in $packages; do
@@ -470,72 +470,72 @@ zpackage::list() {
   done
 }
 
-zpackage::version() {
+package::version() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::version] name is required"
+    log::error "[$(timestamp)][package::version] name is required"
     exit 1
   fi
 
   # @TODO
-  if [ ! -f "$(zpackage::get_mod_path $name)" ]; then
+  if [ ! -f "$(package::get_mod_path $name)" ]; then
     echo "-"
     return
   fi
 
-  zpackage::load_mod $name
+  package::load_mod $name
   echo $VERSION
 }
 
-zpackage::description() {
+package::description() {
   local name=$1
   if [ -z "$name" ]; then
-    log::error "[$(timestamp)][zpackage::description] name is required"
+    log::error "[$(timestamp)][package::description] name is required"
     exit 1
   fi
 
-  if [ ! -f "$(zpackage::get_mod_path $name)" ]; then
+  if [ ! -f "$(package::get_mod_path $name)" ]; then
     echo "No Description"
     return
   fi
 
-  zpackage::load_mod $name
+  package::load_mod $name
   echo $DESCRIPTION
 }
 
-zpackage::force_sudo() {
+package::force_sudo() {
   # use force sudo to get required permissions
   sudo ps >> /dev/null 2>&1
 }
 
-export -f zpackage::get_package_path
-export -f zpackage::get_package_repo_url
+export -f package::get_path
+export -f package::get_package_repo_url
 
-export -f zpackage::get_mod_path
-export -f zpackage::get_config_path
-export -f zpackage::get_core_path
-export -f zpackage::get_bin_zmicro_path
+export -f package::get_mod_path
+export -f package::get_config_path
+export -f package::get_core_path
+export -f package::get_bin_zmicro_path
 
-export -f zpackage::load_mod
-export -f zpackage::load_config
-export -f zpackage::load_core
+export -f package::load_mod
+export -f package::load_config
+export -f package::load_core
 
-export -f zpackage::register
-export -f zpackage::unregister
+export -f package::register
+export -f package::unregister
 
-export -f zpackage::clone
+export -f package::clone
 
-export -f zpackage::install
-export -f zpackage::remove
-export -f zpackage::update
-export -f zpackage::reinstall
+export -f package::install
+export -f package::remove
+export -f package::update
+export -f package::reinstall
 
-export -f zpackage::run
-export -f zpackage::list
+export -f package::run
+export -f package::list
 
-export -f zpackage::version
-export -f zpackage::description
+export -f package::version
+export -f package::description
 
-# export -f zpackage::release
+# export -f package::release
 
-export -f zpackage::force_sudo
+export -f package::force_sudo
