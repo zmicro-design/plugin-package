@@ -210,7 +210,7 @@ package::clone() {
     local current_tag=$(git describe --tags)
     if [ "$current_tag" != "$version" ] && [ "$version" != "master" ]; then
       # git fetch origin $version >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
-      git fetch origin >> $ZMICRO_LOG_UPDATE_PATH 2>$error_log
+      git fetch origin >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
       if [ "$?" != "0" ]; then
         echo "[$(timestamp)][package::clone] git fetch error ${name} ..."
         cat $error_log
@@ -219,13 +219,13 @@ package::clone() {
 
       local tag=$version
       # 1. if tag branch exist, remove it
-      git branch | grep $tag >> /dev/null 2>&1
+      git branch | grep $tag >>/dev/null 2>&1
       if [ "$?" = "0" ]; then
-        git branch -D $tag >> /dev/null 2>&1
+        git branch -D $tag >>/dev/null 2>&1
       fi
 
       # 2. checkout tag branch
-      git checkout -b $version $tag >> $ZMICRO_LOG_UPDATE_PATH 2>$error_log
+      git checkout -b $version $tag >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
       if [ "$?" != "0" ]; then
         echo "[$(timestamp)][package::clone] git checkout error ${name} ..."
         cat $error_log
@@ -234,7 +234,7 @@ package::clone() {
     fi
 
     # 3. update tag branch
-    git pull origin $version >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
+    git pull origin $version >>$ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
     if [ "$?" != "0" ]; then
       echo "[$(timestamp)][package::clone] update package repo ${name} ..."
       tail -n 50 $ZMICRO_LOG_ERROR_PATH
@@ -267,7 +267,10 @@ package::install() {
   fi
 
   if [ -n "$NO_PULL" ]; then
-    echo "no pull code" >> /dev/null 2>&1
+    echo "no pull code" >>/dev/null 2>&1
+  elif [ "$version" = "--local" ]; then
+    # @TODO support local package
+    echo "no pull code" >>/dev/null 2>&1
   else
     package::clone $name $version $args
   fi
@@ -312,7 +315,7 @@ package::remove() {
   if [ ! -d "$package_path" ]; then
     log::error "[$(timestamp)][package::remove] package(${name}) not found"
     # exit 1
-    return 
+    return
   fi
 
   local action=remove
@@ -323,7 +326,6 @@ package::remove() {
   fi
 
   log::info "[$(timestamp)][package::remove] $name"
-
 
   # 1. Before Run Action
   # 1.1 Load Config
@@ -365,7 +367,7 @@ package::update() {
   fi
 
   cd $package_path
-  git pull origin master >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
+  git pull origin master >>$ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
   if [ "$?" != "0" ]; then
     echo "[$(timestamp)][package::update] update package repo ${name} ..."
     tail -n 50 $ZMICRO_LOG_ERROR_PATH
@@ -442,22 +444,22 @@ package::run() {
   # 2. Run Action => install / remove / update / reinstall
   log::debug "[$(timestamp)][package::run] $name $action $args"
   case $action in
-    install)
-      package::install $name $args
-      ;;
-    remove)
-      package::remove $name $args
-      ;;
-    reinstall)
-      package::reinstall $name $args
-      ;;
-    update)
-      package::update $name $args
-      ;;
-    *)
-      log::error "[$(timestamp)][package::run] unkown action(${action}) in ${action} ${name} ${args}"
-      exit 1
-      ;;
+  install)
+    package::install $name $args
+    ;;
+  remove)
+    package::remove $name $args
+    ;;
+  reinstall)
+    package::reinstall $name $args
+    ;;
+  update)
+    package::update $name $args
+    ;;
+  *)
+    log::error "[$(timestamp)][package::run] unkown action(${action}) in ${action} ${name} ${args}"
+    exit 1
+    ;;
   esac
 }
 
@@ -505,7 +507,7 @@ package::description() {
 
 package::force_sudo() {
   # use force sudo to get required permissions
-  sudo ps >> /dev/null 2>&1
+  sudo ps >>/dev/null 2>&1
 }
 
 export -f package::get_path
