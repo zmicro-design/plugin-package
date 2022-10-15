@@ -190,6 +190,9 @@ package::clone() {
     version=master
   fi
 
+  # using smart proxy
+  net::using_smart_proxy 2>&1
+
   local package_path=$(package::get_path $name)
   local package_repo_url=$(package::get_package_repo_url $name)
   if [ ! -d "$package_path" ]; then
@@ -365,6 +368,9 @@ package::update() {
     log::error "[$(timestamp)][package::update] package($name) not found"
     exit 1
   fi
+
+  # using smart proxy
+  net::using_smart_proxy 2>&1
 
   cd $package_path
   git pull origin master >>$ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
