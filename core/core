@@ -208,11 +208,18 @@ package::clone() {
   local package_path=$(package::get_path $name)
   local package_repo_url=$(package::get_package_repo_url $name)
   if [ ! -d "$package_path" ]; then
-    curl -I $package_repo_url 2>>/dev/null | head -n 1 | grep 404 >>/dev/null 2>&1
-    if [ "$?" = "0" ]; then
-      log::error "[$(timestamp)][package::clone] package ${name} is not available"
+    # curl -I $package_repo_url 2>>/dev/null | head -n 1 | grep 404 >>/dev/null 2>&1
+    # if [ "$?" = "0" ]; then
+    #   log::error "[$(timestamp)][package::clone] package ${name} is not available"
+    #   exit 1
+    # fi
+
+    local status_code=$(curl -s -o /dev/null -w "%{http_code}" $package_repo_url)
+    if [ "$status_code" = "404" ]; then
+      log::error "[$(timestamp)][package::clone] ${name} is not a package"
       exit 1
     fi
+
 
     git clone $package_repo_url -b $version $package_path >>$ZMICRO_LOG_COMMON_PATH 2>$error_log
     if [ "$?" != "0" ]; then
