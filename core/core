@@ -147,7 +147,7 @@ package::register() {
         log::success "[$(timestamp)][package::run] register zmicro bin: $(color::green ${name})"
       fi
 
-      ln -s $source_path $target_path
+      ln -sf $source_path $target_path
     }
 
     array::each run $(ls $package_bin_zmicro_path)
