@@ -316,6 +316,10 @@ package::install() {
   # @FIX donot pass version
   # $package_action_path $version $args
   $package_action_path $args
+  if [ "$?" != "0" ]; then
+    log::error "[$(timestamp)][package::install] failed to install $name."
+    return 1
+  fi
 
   # 3. After Run Action
   package::register $name
