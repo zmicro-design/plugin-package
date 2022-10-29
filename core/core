@@ -220,7 +220,6 @@ package::clone() {
       exit 1
     fi
 
-
     git clone $package_repo_url -b $version $package_path >>$ZMICRO_LOG_COMMON_PATH 2>$error_log
     if [ "$?" != "0" ]; then
       log::error "[$(timestamp)][package::clone] error $name($version) ..."
@@ -312,6 +311,12 @@ package::install() {
   # 1.2 Load Core
   package::load_core $name
 
+  # 1.3 Inject environment
+  package::load_mod $name
+  export PACKAGE_NAME=$name
+  export PACKAGE_VERSION=$VERSION
+  export PACKAGE_DESCRIPTION=$DESCRIPTION
+
   log::info "[$(timestamp)][package::install] $name($version) ..."
   # @FIX donot pass version
   # $package_action_path $version $args
@@ -359,6 +364,12 @@ package::remove() {
 
   # 1.2 Load Core
   package::load_core $name
+
+  # 1.3 Inject environment
+  package::load_mod $name
+  export PACKAGE_NAME=$name
+  export PACKAGE_VERSION=$VERSION
+  export PACKAGE_DESCRIPTION=$DESCRIPTION
 
   # 2. Run Action
   # 2.1 Unregister bin
@@ -418,6 +429,12 @@ package::update() {
 
   # 1.2 Load Core
   package::load_core $name
+
+  # 1.3 Inject environment
+  package::load_mod $name
+  export PACKAGE_NAME=$name
+  export PACKAGE_VERSION=$VERSION
+  export PACKAGE_DESCRIPTION=$DESCRIPTION
 
   log::info "[$(timestamp)][package::update] $name ..."
   $package_action_path $args
