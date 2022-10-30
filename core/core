@@ -113,6 +113,14 @@ package::register() {
     exit 1
   fi
 
+  if [ ! -w "$ZMICRO_BIN_PATH" ]; then
+    sudo chmod a+rw $ZMICRO_BIN_PATH
+  fi
+
+  if [ ! -w "$ZMICRO_SUB_BIN_PATH" ]; then
+    sudo chmod a+rw $ZMICRO_SUB_BIN_PATH
+  fi
+
   local package_path=$(package::get_path $name)
   local package_bin_zmicro_path=$(package::get_bin_zmicro_path $name)
   if [ -d $package_bin_zmicro_path ]; then
@@ -120,13 +128,13 @@ package::register() {
       local index=$1
       local bin=$2
       local source_path=$package_path/bin/zmicro/$bin
-      local target_path=$ZMICRO_HOME/bin/sub/$bin
+      local target_path=$ZMICRO_SUB_BIN_PATH/$bin
       local is_alias=false
 
       if [ "$bin" = "alias" ]; then
         is_alias=true
         log::info "[$(timestamp)] alias => $name ..."
-        target_path=$ZMICRO_HOME/bin/sub/$name
+        target_path=$ZMICRO_SUB_BIN_PATH/$name
       fi
 
       if [ ! -f $source_path ]; then
@@ -168,7 +176,7 @@ package::unregister() {
       local index=$1
       local bin=$2
       local source_path=$package_path/bin/zmicro/$bin
-      local target_path=$ZMICRO_HOME/bin/sub/$bin
+      local target_path=$ZMICRO_SUB_BIN_PATH/$bin
 
       if [ ! -f $source_path ]; then
         log::error "[$(timestamp)][package::run][bin] $source_path is not valid file"
