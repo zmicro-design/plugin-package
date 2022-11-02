@@ -4,3 +4,15 @@ export PACKAGES_REPO_PREFIX=https://github.com/zmicro-design/package-
 export PLUGIN_PACKAGE_DATA=$(plugin::get_app_data_path $PLUGIN_PACKAGE_NAME)
 export PLUGIN_PACKAGE_LOGS=$(plugin::get_app_logs_path $PLUGIN_PACKAGE_NAME)
 export PLUGIN_PACKAGE_CONFIGS=$(plugin::get_app_configs_path $PLUGIN_PACKAGE_NAME)/config
+
+if [ ! -w "$ZMICRO_BIN_PATH" ]; then
+  sudo chmod a+rw $ZMICRO_BIN_PATH
+fi
+
+if [ ! -w "$ZMICRO_SUB_BIN_PATH" ]; then
+  sudo chmod a+rw $ZMICRO_SUB_BIN_PATH
+fi
+
+if [ ! -w "$PLUGIN_DIR/packages" ]; then
+  sudo chmod a+rw $PLUGIN_DIR/packages
+fi
