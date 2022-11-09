@@ -243,7 +243,7 @@ package::clone() {
       if [ "$?" != "0" ]; then
         echo "[$(timestamp)][package::clone] git fetch error ${name} ..."
         cat $error_log
-        exit -1
+        exit 1
       fi
 
       local tag=$version
@@ -258,16 +258,17 @@ package::clone() {
       if [ "$?" != "0" ]; then
         echo "[$(timestamp)][package::clone] git checkout error ${name} ..."
         cat $error_log
-        exit -1
+        exit 1
       fi
     fi
 
     # 3. update tag branch
-    git pull origin $version >>$ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
+    local error_log=$(os::tmp_file)
+    git pull origin $version >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
     if [ "$?" != "0" ]; then
-      echo "[$(timestamp)][package::clone] update package repo ${name} ..."
-      tail -n 50 $ZMICRO_LOG_ERROR_PATH
-      exit -1
+      log::error "[$(timestamp)][package::clone] update package repo ${name} ..."
+      cat $error_log
+      exit 1
     fi
   fi
 }
@@ -424,11 +425,13 @@ package::update() {
   net::using_smart_proxy 2>&1
 
   cd $package_path
-  git pull origin master >>$ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
+
+  local error_log=$(os::tmp_file)
+  git pull origin master >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
   if [ "$?" != "0" ]; then
-    echo "[$(timestamp)][package::update] update package repo ${name} ..."
-    tail -n 50 $ZMICRO_LOG_ERROR_PATH
-    exit -1
+    log::error "[$(timestamp)][package::update] update package repo ${name} ..."
+    cat $error_log
+    exit 1
   fi
 
   local action=update
