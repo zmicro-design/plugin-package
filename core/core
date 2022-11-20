@@ -222,6 +222,10 @@ package::clone() {
     #   exit 1
     # fi
 
+    if [ ! -w "$ZMICRO_PLUGINS_PATH/package/packages" ]; then
+      sudo chown $USER $ZMICRO_PLUGINS_PATH/package/packages
+    fi
+
     local status_code=$(curl -s -o /dev/null -w "%{http_code}" $package_repo_url)
     if [ "$status_code" = "404" ]; then
       log::error "[$(timestamp)][package::clone] ${name} is not a package"
@@ -235,6 +239,10 @@ package::clone() {
       exit 1
     fi
   else
+    if [ ! -w "$package_path" ]; then
+      sudo chown -R $USER $package_path
+    fi
+
     cd $package_path
     local current_tag=$(git describe --tags)
     if [ "$current_tag" != "$version" ] && [ "$version" != "master" ]; then
