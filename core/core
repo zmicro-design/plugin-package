@@ -354,6 +354,7 @@ package::install() {
   export PACKAGE_OS_PLATFORM="$(os::platform)"
   export PACKAGE_OS_DISTRIBUTION="$(os::distribution)"
   export PACKAGE_USER_BIN_DIR="$(os::usr_bin_dir)"
+  export PACKAGE_USER_LIB_DIR="$(os::usr_lib_dir)"
   export PACKAGE_TMP_DIR="$(os::tmp_dir)/package-${name}"
   if [ ! -d "$PACKAGE_TMP_DIR" ]; then
     mkdir -p $PACKAGE_TMP_DIR
