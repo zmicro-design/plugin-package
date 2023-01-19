@@ -317,6 +317,8 @@ package::install() {
 
   if [ -n "$NO_PULL" ]; then
     echo "no pull code" >>/dev/null 2>&1
+  elif [ -n "$PLUGIN_PACKAGE_OFFLINE" ]; then
+    echo "offline" >>/dev/null 2>&1
   elif [ "$version" = "--local" ]; then
     # @TODO support local package
     echo "no pull code" >>/dev/null 2>&1

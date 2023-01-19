@@ -2,11 +2,12 @@
 
 help() {
   echo "Usage:"
-  echo "  zpackage install <package>[@<version>]"
+  echo "  zpackage install [options...] <package>[@<version>]"
   echo ""
   echo "Options:"
   echo "  -v,--version <version>    - specify package version"
   echo "  --build-from-source       - package build from source, set env BUILD_FROM_SOURCE=true"
+  echo "  --offline                 - use offline package, do not update"
 }
 
 core() {
@@ -27,7 +28,11 @@ core() {
       shift
       ;;
     --build-from-source)
-      export BUILD_FROM_SOURCE=true
+      export PLUGIN_PACKAGE_OFFLINE=true
+      shift
+      ;;
+    --offline)
+      export OFFLINE=true
       shift
       ;;
     *)
