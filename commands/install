@@ -4,6 +4,9 @@ help() {
   echo "Usage:"
   echo "  zpackage install <package>[@<version>]"
   echo ""
+  echo "Options:"
+  echo "  -v,--version <version>    - specify package version"
+  echo "  --build-from-source       - package build from source, set env BUILD_FROM_SOURCE=true"
 }
 
 core() {
@@ -11,16 +14,41 @@ core() {
     help
     exit 0
   fi
-  
-  local name=$1
-  local version=$2
+
+  local name=""
+  local version=""
+
+  while [[ $# -gt 0 ]]; do
+    local key=$1
+    local value=$2
+    case $key in
+    -v | --version)
+      var::set version $value
+      shift
+      ;;
+    --build-from-source)
+      export BUILD_FROM_SOURCE=true
+      shift
+      ;;
+    *)
+      if [ -z "$name" ]; then
+        name="$key"
+        shift
+        continue
+      elif [ -z "$version" ]; then
+        version="$key"
+        shift
+        continue
+      fi
+
+      log::error "unknown options $key"
+      ;;
+    esac
+  done
+
   if [ -z "$name" ]; then
     log::error "package name is requried"
     exit 1
-  fi
-
-  if [ "$version" = "-v" ]; then
-    version=$3
   fi
 
   if [ "$(version::at $name)" = "true" ]; then
