@@ -28,8 +28,9 @@ core() {
       shift
       ;;
     --build-from-source)
-      export PLUGIN_PACKAGE_OFFLINE=true
       export PLUGIN_PACKAGE_BUILD_FROM_SOURCE=true
+      # @depreciated compitable
+      export BUILD_FROM_SOURCE=true
       shift
       ;;
     --offline)
