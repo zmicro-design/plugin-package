@@ -317,13 +317,17 @@ package::install() {
 
   if [ -n "$NO_PULL" ]; then
     echo "no pull code" >>/dev/null 2>&1
-  elif [ -n "$PLUGIN_PACKAGE_OFFLINE" ]; then
+  elif [ "$PLUGIN_PACKAGE_OFFLINE" = "true" ]; then
     echo "offline" >>/dev/null 2>&1
   elif [ "$version" = "--local" ]; then
     # @TODO support local package
     echo "no pull code" >>/dev/null 2>&1
   else
     package::clone $name $version $args
+    if [ "$?" != "0" ]; then
+      log::error "[$(timestamp)][package::install] failed to download package(${name})"
+      exit 1
+    fi
   fi
 
   local package_path=$(package::get_path $name)
