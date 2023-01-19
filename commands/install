@@ -26,6 +26,7 @@ core() {
     -v | --version)
       var::set version $value
       shift
+      shift
       ;;
     --build-from-source)
       export PLUGIN_PACKAGE_BUILD_FROM_SOURCE=true
