@@ -6,6 +6,7 @@ export PLUGIN_PACKAGE_LOGS=$(plugin::get_app_logs_path $PLUGIN_PACKAGE_NAME)
 export PLUGIN_PACKAGE_CONFIGS=$(plugin::get_app_configs_path $PLUGIN_PACKAGE_NAME)/config
 
 export PLUGIN_PACKAGE_OFFLINE=${PLUGIN_PACKAGE_OFFLINE:-"false"}
+export PLUGIN_PACKAGE_BUILD_FROM_SOURCE=${PLUGIN_PACKAGE_BUILD_FROM_SOURCE:-"false"}
 
 if [ ! -w "$ZMICRO_BIN_PATH" ]; then
   sudo chmod a+rw $ZMICRO_BIN_PATH

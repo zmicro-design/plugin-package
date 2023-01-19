@@ -29,10 +29,11 @@ core() {
       ;;
     --build-from-source)
       export PLUGIN_PACKAGE_OFFLINE=true
+      export PLUGIN_PACKAGE_BUILD_FROM_SOURCE=true
       shift
       ;;
     --offline)
-      export OFFLINE=true
+      export PLUGIN_PACKAGE_OFFLINE=true
       shift
       ;;
     *)
