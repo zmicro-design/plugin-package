@@ -8,6 +8,7 @@ help() {
   echo "  -v,--version <version>    - specify package version"
   echo "  --build-from-source       - package build from source, set env BUILD_FROM_SOURCE=true"
   echo "  --offline                 - use offline package, do not update"
+  echo "  --use-doreamon-design     - use doreamon design version"
 }
 
 core() {
@@ -36,6 +37,10 @@ core() {
       ;;
     --offline)
       export PLUGIN_PACKAGE_OFFLINE=true
+      shift
+      ;;
+    --use-doreamon-design)
+      export PLUGIN_PACKAGE_USE_DOREAMON_DESIGN=true
       shift
       ;;
     *)
