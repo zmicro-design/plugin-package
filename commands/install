@@ -9,6 +9,7 @@ help() {
   echo "  --build-from-source       - package build from source, set env BUILD_FROM_SOURCE=true"
   echo "  --offline                 - use offline package, do not update"
   echo "  --use-doreamon-design     - use doreamon design version"
+  echo "  --bootstrap-service       - bootstrap service if exist"
 }
 
 core() {
@@ -41,6 +42,10 @@ core() {
       ;;
     --use-doreamon-design)
       export PLUGIN_PACKAGE_USE_DOREAMON_DESIGN=true
+      shift
+      ;;
+    --bootstrap-service)
+      export PLUGIN_PACKAGE_BOOTSTRAP_SERVICE=true
       shift
       ;;
     *)
