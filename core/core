@@ -355,6 +355,7 @@ package::install() {
   export PACKAGE_NAME=$name
   export PACKAGE_VERSION=$VERSION
   export PACKAGE_DESCRIPTION=$DESCRIPTION
+  export PACKAGE_OS=$(os::os_name)
   export PACKAGE_OS_ARCH="$(os::arch)"
   export PACKAGE_OS_KERNEL="$(os::kernel)"
   export PACKAGE_OS_PLATFORM="$(os::platform)"
