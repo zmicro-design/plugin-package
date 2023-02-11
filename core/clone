@@ -1,0 +1,101 @@
+#!/bin/bash
+
+package::clone() {
+  local name=$1
+  local version=$2
+  local args=${@:3}
+
+  local error_log=$(os::tmp_file)
+
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)][package::clone] name is required"
+    exit 1
+  fi
+
+  if [ -z "$version" ]; then
+    version=master
+  elif [ "$version" = "latest" ]; then
+    version=master
+  fi
+
+  # using smart proxy
+  net::using_smart_proxy 2>&1
+
+  local package_path=$(package::get_path $name)
+  local package_repo_url=$(package::get_package_repo_url $name)
+  log::debug "[$(timestamp)][package::clone] package info: path => $package_path, url => $package_repo_url ..."
+  if [ ! -d "$package_path" ]; then
+    # curl -I $package_repo_url 2>>/dev/null | head -n 1 | grep 404 >>/dev/null 2>&1
+    # if [ "$?" = "0" ]; then
+    #   log::error "[$(timestamp)][package::clone] package ${name} is not available"
+    #   exit 1
+    # fi
+
+    log::debug "[$(timestamp)][package::clone] check packages($ZMICRO_PLUGINS_PATH/package/packages) permission ..."
+    if [ ! -w "$ZMICRO_PLUGINS_PATH/package/packages" ]; then
+      log::debug "[$(timestamp)][package::clone] fix packages($ZMICRO_PLUGINS_PATH/package/packages) permission ..."
+      sudo chown $USER $ZMICRO_PLUGINS_PATH/package/packages
+    fi
+
+    log::debug "[$(timestamp)][package::clone] check status: $packages_repo_url ..."
+    local status_code=$(curl -s -o /dev/null -w "%{http_code}" $package_repo_url)
+    if [ "$status_code" = "404" ]; then
+      log::error "[$(timestamp)][package::clone] ${name} is not a package"
+      exit 1
+    fi
+
+    log::debug "[$(timestamp)][package::clone] git clone: $packages_repo_url => $package_path with version $version ..."
+    git clone $package_repo_url -b $version $package_path >>$ZMICRO_LOG_COMMON_PATH 2>$error_log
+    if [ "$?" != "0" ]; then
+      log::error "[$(timestamp)][package::clone] error $name($version) ..."
+      cat $error_log
+      exit 1
+    fi
+  else
+    if [ ! -w "$package_path" ]; then
+      sudo chown -R $USER $package_path
+    fi
+
+    cd $package_path
+    local current_tag=$(git describe --tags 2>/dev/null)
+    if [ "$current_tag" != "$version" ] && [ "$version" != "master" ]; then
+      log::debug "[$(timestamp)][package::clone] git update ..."
+      # git fetch origin $version >> $ZMICRO_LOG_UPDATE_PATH 2>>$ZMICRO_LOG_ERROR_PATH
+      git fetch origin >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
+      if [ "$?" != "0" ]; then
+        echo "[$(timestamp)][package::clone] git fetch error ${name} ..."
+        cat $error_log
+        exit 1
+      fi
+
+      local tag=$version
+      # 1. if tag branch exist, remove it
+      log::debug "[$(timestamp)][package::clone] git check tag: $tag ..."
+      git branch | grep $tag >>/dev/null 2>&1
+      if [ "$?" = "0" ]; then
+        git branch -D $tag >>/dev/null 2>&1
+      fi
+
+      # 2. checkout tag branch
+      log::debug "[$(timestamp)][package::clone] git switch tag: $tag (version: $version) ..."
+      git checkout -b $version $tag >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
+      if [ "$?" != "0" ]; then
+        echo "[$(timestamp)][package::clone] git checkout error ${name} ..."
+        cat $error_log
+        exit 1
+      fi
+    fi
+
+    # 3. update tag branch
+    local error_log=$(os::tmp_file)
+    log::debug "[$(timestamp)][package::clone] git update version: $version ..."
+    git pull origin $version >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
+    if [ "$?" != "0" ]; then
+      log::error "[$(timestamp)][package::clone] update package repo ${name} ..."
+      cat $error_log
+      exit 1
+    fi
+  fi
+}
+
+export -f package::clone

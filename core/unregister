@@ -1,0 +1,35 @@
+#!/bin/bash
+
+package::unregister() {
+  local name=$1
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)][package::unregister] name is required"
+    exit 1
+  fi
+
+  local package_path=$(package::get_path $name)
+  local package_bin_zmicro_path=$(package::get_bin_zmicro_path $name)
+  if [ -d $package_bin_zmicro_path ]; then
+    run() {
+      local index=$1
+      local bin=$2
+      local source_path=$package_path/bin/zmicro/$bin
+      local target_path=$ZMICRO_SUB_BIN_PATH/$bin
+
+      if [ ! -f $source_path ]; then
+        log::error "[$(timestamp)][package::run][bin] $source_path is not valid file"
+        exit 1
+      elif [ ! -f $target_path ]; then
+        log::warn "[$(timestamp)][package::run][bin] name $bin not found or removed"
+        return
+      fi
+
+      log::success "[$(timestamp)][package::run] unregister zmicro bin: $(color::red ${bin})"
+      unlink $target_path
+    }
+
+    array::each run $(ls $package_bin_zmicro_path)
+  fi
+}
+
+export -f package::unregister

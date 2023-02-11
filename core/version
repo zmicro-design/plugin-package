@@ -1,0 +1,20 @@
+#!/bin/bash
+
+package::version() {
+  local name=$1
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)][package::version] name is required"
+    exit 1
+  fi
+
+  # @TODO
+  if [ ! -f "$(package::get_mod_path $name)" ]; then
+    echo "-"
+    return
+  fi
+
+  package::load_mod $name
+  echo $VERSION
+}
+
+export -f package::version

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+package::reinstall() {
+  local name=$1
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)][package::reinstall] name is required"
+    exit 1
+  fi
+
+  log::info "[$(timestamp)][package::reinstall] $name ..."
+
+  local package_path=$(package::get_path $name)
+  package::clone $name
+
+  local action=reinstall
+  local package_action_path=$package_path/$action
+  if [ ! -f "$package_action_path" ]; then
+    package::install $name
+  else
+    $package_action_path $args
+  fi
+
+  local version=$(package::version $name)
+  log::success "[$(timestamp)][package::reinstall][done] $name($version) ..."
+}
+
+export -f package::reinstall

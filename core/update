@@ -1,0 +1,69 @@
+#!/bin/bash
+
+package::update() {
+  local name=$1
+  local version=$2
+  local args=${@:3}
+
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)][package::update] name is required"
+    exit 1
+  fi
+
+  if [ -z "$version" ]; then
+    version=master
+  fi
+
+  local package_path=$(package::get_path $name)
+  local package_repo_url=$(package::get_package_repo_url $name)
+  if [ ! -d "$package_path" ]; then
+    log::error "[$(timestamp)][package::update] package($name) not found"
+    exit 1
+  fi
+
+  # using smart proxy
+  net::using_smart_proxy 2>&1
+
+  cd $package_path
+
+  local error_log=$(os::tmp_file)
+  git pull origin master >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
+  if [ "$?" != "0" ]; then
+    log::error "[$(timestamp)][package::update] update package repo ${name} ..."
+    cat $error_log
+    exit 1
+  fi
+
+  local action=update
+  local package_action_path=$package_path/$action
+  if [ ! -f "$package_action_path" ]; then
+    # log::error "[$(timestamp)][package::update] package(${name}) found, but action(${action}) is not available"
+    # exit 1
+    package::install $name $version $args
+    return
+  fi
+
+  # 1. Before Run Action
+  # 1.1 Load Config
+  package::load_config $name
+
+  # 1.2 Load Core
+  package::load_core $name
+
+  # 1.3 Inject environment
+  package::load_mod $name
+  export PACKAGE_NAME=$name
+  export PACKAGE_VERSION=$VERSION
+  export PACKAGE_DESCRIPTION=$DESCRIPTION
+
+  log::info "[$(timestamp)][package::update] $name ..."
+  $package_action_path $args
+
+  # 3. After Run Action
+  package::register $name
+
+  local version=$(package::version $name)
+  log::success "[$(timestamp)][package::update][done] $name($version) ..."
+}
+
+export -f package::update

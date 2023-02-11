@@ -1,0 +1,42 @@
+#!/bin/bash
+
+package::run() {
+  package::force_sudo
+
+  local action=$1
+  local name=$2
+  local args=${@:3}
+
+  if [ -z "$action" ]; then
+    log::error "[$(timestamp)][package::run] action is required"
+    exit 1
+  fi
+
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)][package::run] name is required"
+    exit 1
+  fi
+
+  # 2. Run Action => install / remove / update / reinstall
+  log::debug "[$(timestamp)][package::run] $name $action $args"
+  case $action in
+  install)
+    package::install $name $args
+    ;;
+  remove)
+    package::remove $name $args
+    ;;
+  reinstall)
+    package::reinstall $name $args
+    ;;
+  update)
+    package::update $name $args
+    ;;
+  *)
+    log::error "[$(timestamp)][package::run] unkown action(${action}) in ${action} ${name} ${args}"
+    exit 1
+    ;;
+  esac
+}
+
+export -f package::run

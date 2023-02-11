@@ -1,0 +1,12 @@
+#!/bin/bash
+
+package::list() {
+  local packages=$(ls $PACKAGES_PATH)
+  local index=1
+  for name in $packages; do
+    echo "[$index] $name"
+    index=$((index + 1))
+  done
+}
+
+export -f package::list

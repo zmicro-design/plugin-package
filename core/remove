@@ -1,0 +1,52 @@
+#!/bin/bash
+
+package::remove() {
+  local name=$1
+  local args=${@:2}
+
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)][package::remove] name is required"
+    exit 1
+  fi
+
+  local package_path=$(package::get_path $name)
+  if [ ! -d "$package_path" ]; then
+    log::error "[$(timestamp)][package::remove] package(${name}) not found"
+    # exit 1
+    return
+  fi
+
+  local action=remove
+  local package_action_path=$package_path/$action
+  if [ ! -f "$package_action_path" ]; then
+    log::error "[$(timestamp)][package::remove] package(${name}) found, but action(${action}) is not available"
+    exit 1
+  fi
+
+  log::info "[$(timestamp)][package::remove] $name"
+
+  # 1. Before Run Action
+  # 1.1 Load Config
+  package::load_config $name
+
+  # 1.2 Load Core
+  package::load_core $name
+
+  # 1.3 Inject environment
+  package::load_mod $name
+  export PACKAGE_NAME=$name
+  export PACKAGE_VERSION=$VERSION
+  export PACKAGE_DESCRIPTION=$DESCRIPTION
+
+  # 2. Run Action
+  # 2.1 Unregister bin
+  package::unregister $name
+  # 2.2 Run Action
+  $package_action_path $args
+
+  rm -rf $package_path
+
+  log::success "[$(timestamp)][package::remove][done] $name"
+}
+
+export -f package::remove

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+package::register() {
+  local name=$1
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)][package::register] name is required"
+    exit 1
+  fi
+
+  if [ ! -w "$ZMICRO_BIN_PATH" ]; then
+    sudo chmod a+rw $ZMICRO_BIN_PATH
+  fi
+
+  if [ ! -w "$ZMICRO_SUB_BIN_PATH" ]; then
+    sudo chmod a+rw $ZMICRO_SUB_BIN_PATH
+  fi
+
+  local package_path=$(package::get_path $name)
+  local package_bin_zmicro_path=$(package::get_bin_zmicro_path $name)
+  if [ -d $package_bin_zmicro_path ]; then
+    run() {
+      local index=$1
+      local bin=$2
+      local source_path=$package_path/bin/zmicro/$bin
+      local target_path=$ZMICRO_SUB_BIN_PATH/$bin
+      local is_alias=false
+
+      if [ "$bin" = "alias" ]; then
+        is_alias=true
+        log::info "[$(timestamp)] alias => $name ..."
+        target_path=$ZMICRO_SUB_BIN_PATH/$name
+      fi
+
+      if [ ! -f $source_path ]; then
+        log::error "[$(timestamp)][package::run][bin] ignore ($source_path is not valid file)"
+        return
+      elif [ -f $target_path ]; then
+        local link_path=$(readlink $target_path)
+        if [ "$link_path" != "$source_path" ]; then
+          log::error "[$(timestamp)][package::run][bin] name $bin has been used"
+          exit 1
+        fi
+        return
+      fi
+
+      if [ "$is_alias" != "true" ]; then
+        log::success "[$(timestamp)][package::run] register zmicro bin: $(color::green ${bin})"
+      else
+        log::success "[$(timestamp)][package::run] register zmicro bin: $(color::green ${name})"
+      fi
+
+      ln -sf $source_path $target_path
+    }
+
+    array::each run $(ls $package_bin_zmicro_path)
+  fi
+}
+
+export -f package::register

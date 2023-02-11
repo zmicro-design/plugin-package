@@ -1,0 +1,94 @@
+#!/bin/bash
+
+package::install() {
+  local name=$1
+  local version=$2
+  local args=${@:3}
+
+  log::debug "[$(timestamp)][package::install] start to install $name ..."
+
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)][package::install] name is required"
+    exit 1
+  fi
+
+  # @FEAT support: zmicro package install $name@$version
+  # @example zmicro package install name@version
+  if [ "$(string::match $name @)" = "true" ]; then
+    version=$(echo $name | awk -F@ '{print $2}')
+    name=$(echo $name | awk -F@ '{print $1}')
+  fi
+
+  if [ -z "$version" ]; then
+    version=latest
+  fi
+
+  if [ -n "$NO_PULL" ]; then
+    echo "no pull code" >>/dev/null 2>&1
+  elif [ "$PLUGIN_PACKAGE_OFFLINE" = "true" ]; then
+    echo "offline" >>/dev/null 2>&1
+  elif [ "$version" = "--local" ]; then
+    # @TODO support local package
+    echo "no pull code" >>/dev/null 2>&1
+  else
+    package::clone $name $version $args
+    if [ "$?" != "0" ]; then
+      log::error "[$(timestamp)][package::install] failed to download package(${name})"
+      exit 1
+    fi
+  fi
+
+  local package_path=$(package::get_path $name)
+  local action=install
+  local package_action_path=$package_path/$action
+  if [ ! -f "$package_action_path" ]; then
+    log::error "[$(timestamp)][package::install] package(${name}) found, but action(${action}) is not available"
+    exit 1
+  fi
+
+  # 1. Before Run Action
+  # 1.1 Load Config
+  log::debug "[$(timestamp)][package::install][name: $name] load config ..."
+  package::load_config $name
+
+  # 1.2 Load Core
+  log::debug "[$(timestamp)][package::install][name: $name] load core ..."
+  package::load_core $name
+
+  # 1.3 Inject environment
+  log::debug "[$(timestamp)][package::install][name: $name] load mod ..."
+  package::load_mod $name
+
+  log::debug "[$(timestamp)][package::install][name: $name] inject environment ..."
+  export PACKAGE_NAME=$name
+  export PACKAGE_VERSION=$VERSION
+  export PACKAGE_DESCRIPTION=$DESCRIPTION
+  export PACKAGE_OS=$(os::os_name)
+  export PACKAGE_OS_ARCH="$(os::arch)"
+  export PACKAGE_OS_KERNEL="$(os::kernel)"
+  export PACKAGE_OS_PLATFORM="$(os::platform)"
+  export PACKAGE_OS_DISTRIBUTION="$(os::distribution)"
+  export PACKAGE_USER_BIN_DIR="$(os::usr_bin_dir)"
+  export PACKAGE_USER_LIB_DIR="$(os::usr_lib_dir)"
+  export PACKAGE_TMP_DIR="$(os::tmp_dir)/package-${name}"
+  if [ ! -d "$PACKAGE_TMP_DIR" ]; then
+    mkdir -p $PACKAGE_TMP_DIR
+  fi
+
+  log::info "[$(timestamp)][package::install] $name($version) ..."
+  # @FIX donot pass version
+  # $package_action_path $version $args
+  $package_action_path $args
+  if [ "$?" != "0" ]; then
+    log::error "[$(timestamp)][package::install] failed to install $name."
+    return 1
+  fi
+
+  # 3. After Run Action
+  package::register $name
+
+  local version=$(package::version $name)
+  log::success "[$(timestamp)][package::install][done] $name($version) ..."
+}
+
+export -f package::install
