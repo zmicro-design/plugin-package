@@ -208,6 +208,8 @@ package::clone() {
 
   if [ -z "$version" ]; then
     version=master
+  elif [ "$version" = "latest" ]; then
+    version=master
   fi
 
   # using smart proxy
@@ -310,9 +312,7 @@ package::install() {
   fi
 
   if [ -z "$version" ]; then
-    version=master
-  elif [ "$version" = "latest" ]; then
-    version=master
+    version=latest
   fi
 
   if [ -n "$NO_PULL" ]; then
