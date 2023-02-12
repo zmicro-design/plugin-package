@@ -71,6 +71,7 @@ package::install() {
   export PACKAGE_USER_BIN_DIR="$(os::usr_bin_dir)"
   export PACKAGE_USER_LIB_DIR="$(os::usr_lib_dir)"
   export PACKAGE_TMP_DIR="$(os::tmp_dir)/package-${name}"
+  export PACKAGE_DIR="$PACKAGES_PATH/$PACKAGE_NAME"
   if [ ! -d "$PACKAGE_TMP_DIR" ]; then
     mkdir -p $PACKAGE_TMP_DIR
   fi
