@@ -86,6 +86,16 @@ package::clone() {
       fi
     fi
 
+    # fix docker-compose@v1 => docker-compose@latest
+    if [ "$version" = "master" ] && [ "$(git::branch)" != "master" ]; then
+      git checkout master >>/dev/null 2>$error_log
+      if [ "$?" != "0" ]; then
+        log::error "[$(timestamp)][package::clone] failed to checkot master at repo ${name} ."
+        cat $error_log
+        exit 1
+      fi
+    fi
+
     # 3. update tag branch
     local error_log=$(os::tmp_file)
     log::debug "[$(timestamp)][package::clone] git update version: $version ..."
