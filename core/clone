@@ -76,6 +76,12 @@ package::clone() {
         git branch -D $tag >>/dev/null 2>&1
       fi
 
+      # fix: fatal: A branch named 'v1' already exists.
+      if [ "$(git::branch)" = "heads/$version" ]; then
+        git checkout master >>/dev/null
+        git branch -D $version >>/dev/null
+      fi
+
       # 2. checkout tag branch
       log::debug "[$(timestamp)][package::clone] git switch tag: $tag (version: $version) ..."
       git checkout -b $version $tag >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
