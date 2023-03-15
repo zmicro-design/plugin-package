@@ -57,6 +57,11 @@ package::clone() {
     fi
 
     cd $package_path
+
+    if [ ! -r ".git/FETCH_HEAD" ] || [ ! -w ".git/FETCH_HEAD" ]; then 
+      sudo chown -R $USER $package_path
+    fi
+
     local current_tag=$(git describe --tags 2>/dev/null)
     if [ "$current_tag" != "$version" ] && [ "$version" != "master" ]; then
       log::debug "[$(timestamp)][package::clone] git update ..."
