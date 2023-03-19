@@ -101,7 +101,7 @@ package::clone() {
     if [ "$version" = "master" ] && [ "$(git::branch)" != "master" ]; then
       git checkout master >>/dev/null 2>$error_log
       if [ "$?" != "0" ]; then
-        log::error "[$(timestamp)][package::clone] failed to checkot master at repo ${name} ."
+        log::error "[$(timestamp)][package::clone] failed to checkout master at repo ${name} ."
         cat $error_log
         exit 1
       fi
@@ -112,7 +112,7 @@ package::clone() {
     log::debug "[$(timestamp)][package::clone] git update version: $version ..."
     git pull origin $version >>$ZMICRO_LOG_UPDATE_PATH 2>$error_log
     if [ "$?" != "0" ]; then
-      log::error "[$(timestamp)][package::clone] update package repo ${name} ..."
+      log::error "[$(timestamp)][package::clone] failed to update package repo ${name} ."
       cat $error_log
       exit 1
     fi

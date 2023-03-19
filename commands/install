@@ -48,6 +48,10 @@ core() {
       export PLUGIN_PACKAGE_BOOTSTRAP_SERVICE=true
       shift
       ;;
+    --test)
+      export PLUGIN_PACKAGE_INSTALL_MODE=test
+      shift
+      ;;
     *)
       if [ -z "$name" ]; then
         name="$key"
