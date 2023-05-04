@@ -6,10 +6,11 @@ help() {
   echo ""
   echo "Options:"
   echo "  -v,--version <version>    - specify package version"
-  echo "  --build-from-source       - package build from source, set env BUILD_FROM_SOURCE=true"
+  echo "  --build-from-source       - package build from source, set env PLUGIN_PACKAGE_BUILD_FROM_SOURCE=true"
   echo "  --offline                 - use offline package, do not update"
   echo "  --use-doreamon-design     - use doreamon design version"
   echo "  --bootstrap-service       - bootstrap service if exist"
+  echo "  --no-check-latest         - do not check latest, set env PLUGIN_PACKAGE_NO_CHECK_LATEST=true"
 }
 
 core() {
@@ -35,6 +36,9 @@ core() {
       # @depreciated compitable
       export BUILD_FROM_SOURCE=true
       shift
+      ;;
+    --no-check-latest)
+      export PLUGIN_PACKAGE_NO_CHECK_LATEST=true
       ;;
     --offline)
       export PLUGIN_PACKAGE_OFFLINE=true
