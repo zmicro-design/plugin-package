@@ -12,6 +12,35 @@ package::install() {
     exit 1
   fi
 
+  if [ -n "$PLUGIN_PACKAGE_INSTALL_PACKAGE_MANAGER" ]; then
+    log::debug "[$(timestamp)][package::install] PLUGIN_PACKAGE_INSTALL_PACKAGE_MANAGER: $PLUGIN_PACKAGE_INSTALL_PACKAGE_MANAGER"
+    
+    case $PLUGIN_PACKAGE_INSTALL_PACKAGE_MANAGER in
+    npm)
+      pm::npm i -g --force $name
+      return $?
+      ;;
+    cnpm)
+      pm::cnpm i -g $name
+      # cnpm i -g $name
+      return $?
+      ;;
+    pnpm)
+      pm::pnpm i -g $name
+      return $?
+      ;;
+    yarn)
+      pm::yarn global add $name
+      return $?
+      ;;
+    go)
+      pm::go install $name@latest
+      return $?
+      ;;
+    esac
+  fi
+
+
   # @FEAT support: zmicro package install $name@$version
   # @example zmicro package install name@version
   if [ "$(string::match $name @)" = "true" ]; then

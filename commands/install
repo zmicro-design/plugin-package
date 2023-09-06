@@ -56,6 +56,11 @@ core() {
       export PLUGIN_PACKAGE_INSTALL_MODE=test
       shift
       ;;
+    --pm | --package-manager)
+      export PLUGIN_PACKAGE_INSTALL_PACKAGE_MANAGER=$value
+      shift
+      shift
+      ;;
     *)
       if [ -z "$name" ]; then
         name="$key"
