@@ -2,7 +2,7 @@
 
 help() {
   echo "Usage:"
-  echo "  zpackage install [options...] <package>[@<version>]"
+  echo "  zmicro package install [options...] <package>[@<version>] [<package>[@<version>] ...]"
   echo ""
   echo "Options:"
   echo "  -v,--version <version>    - specify package version"
@@ -19,8 +19,7 @@ core() {
     exit 0
   fi
 
-  local name=""
-  local version=""
+  local names=""
 
   while [[ $# -gt 0 ]]; do
     local key=$1
@@ -62,17 +61,14 @@ core() {
       shift
       ;;
     *)
-      if [ -z "$name" ]; then
-        name="$key"
-        shift
-        continue
-      elif [ -z "$version" ]; then
-        version="$key"
-        shift
-        continue
+      # unknown options
+      if [ "${key:0:1}" = "-" ]; then
+        log::error "unknown options $key"
+        return 1
       fi
 
-      log::error "unknown options $key"
+      names="$names $key"
+      shift
       ;;
     esac
   done
@@ -82,12 +78,31 @@ core() {
     exit 1
   fi
 
-  if [ "$(version::at $name)" = "true" ]; then
-    version=$(version::at_version $name)
-    name=$(version::at_name $name)
+  local total=$(echo $names | wc -w | xargs)
+  local current=0
+  
+  if [ "$total" = "1" ]; then
+    package::install $name $version
+    return $?
   fi
 
-  package::run install $name $version
+  for name in $names; do
+    current=$((current + 1))
+    
+    local version=""
+    if [ "$(version::at $name)" = "true" ]; then
+      version=$(version::at_version $name)
+      name=$(version::at_name $name)
+    fi
+
+    if [ -n "$version" ]; then
+      log::info "[$current/$total][$(timestamp)] install $name with version $version ..."
+    else
+      log::info "[$current/$total](timestamp)] install $name ..."
+    fi
+    
+    package::install $name $version
+  done
 }
 
 run() {
