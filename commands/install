@@ -82,6 +82,12 @@ core() {
   local current=0
   
   if [ "$total" = "1" ]; then
+    local name=$names
+    if [ "$(version::at $name)" = "true" ]; then
+      version=$(version::at_version $name)
+      name=$(version::at_name $name)
+    fi
+
     package::install $name $version
     return $?
   fi
