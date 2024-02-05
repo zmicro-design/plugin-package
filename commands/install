@@ -77,7 +77,7 @@ core() {
     esac
   done
 
-  if [ -z "$name" ]; then
+  if [ -z "$names" ]; then
     log::error "package name is requried"
     exit 1
   fi
