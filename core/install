@@ -14,7 +14,7 @@ package::install() {
 
   if [ -n "$PLUGIN_PACKAGE_INSTALL_PACKAGE_MANAGER" ]; then
     log::debug "[$(timestamp)][package::install] PLUGIN_PACKAGE_INSTALL_PACKAGE_MANAGER: $PLUGIN_PACKAGE_INSTALL_PACKAGE_MANAGER"
-    
+
     case $PLUGIN_PACKAGE_INSTALL_PACKAGE_MANAGER in
     npm)
       pm::npm i -g --force $name
@@ -40,6 +40,10 @@ package::install() {
     esac
   fi
 
+  if [ "$name" = "." ]; then
+    export PLUGIN_PACKAGE_OFFLINE=true
+    name=$(cat mod | grep NAME | awk -F '=' '{print $2}')
+  fi
 
   # @FEAT support: zmicro package install $name@$version
   # @example zmicro package install name@version
@@ -68,6 +72,7 @@ package::install() {
   fi
 
   local package_path=$(package::get_path $name)
+
   local action=install
   local package_action_path=$package_path/$action
   if [ ! -f "$package_action_path" ]; then
