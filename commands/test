@@ -1,0 +1,55 @@
+#!/bin/bash
+
+help() {
+  echo "Usage:"
+  echo "  zmicro package test"
+}
+
+core() {
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    help
+    exit 0
+  fi
+
+  if [ ! -f "mod" ]; then
+    log::error "[$(timestamp)] not a valid package (mod not found)"
+    return 1
+  fi
+
+  local name=$(cat mod | grep NAME | awk -F '=' '{print $2}')
+  if [ -z "$name" ]; then
+    log::error "[$(timestamp)] not a valid package (mod NAME not found)"
+    return 1
+  fi
+  
+  log::info "[$(timestamp)] install local package: $name ..."
+  zmicro package install .
+  if [ "$?" != "0" ]; then
+    log::error "[$(timestamp)] failed to install local package"
+    return 1
+  fi
+
+  log::info "[$(timestamp)] show package info ..."
+  zmicro $name version
+  if [ "$?" != "0" ]; then
+    log::error "[$(timestamp)] failed to show package info"
+    return 1
+  fi
+
+  log::info "[$(timestamp)] show package help ..."
+  zmicro $name help
+  if [ "$?" != "0" ]; then
+    log::error "[$(timestamp)] failed to show package help"
+    return 1
+  fi
+}
+
+run() {
+  core $@
+  if [ "$?" != "0" ]; then
+    log::error "[$(timestamp)][package::test] failed to test package"
+    exit 1
+  fi
+}
+
+run $@
