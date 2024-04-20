@@ -4,18 +4,13 @@ package::info() {
   local name=$1
   if [ -z "$name" ]; then
     log::error "[$(timestamp)][package::info] name is required"
-    exit 1
-  fi
-
-  if [ ! -f "$(package::get_mod_path $name)" ]; then
-    echo "No Description"
-    return
+    return 1
   fi
 
   local package_mod_path=$(package::get_mod_path $name)
   if [ ! -f $package_mod_path ]; then
     log::error "[$(timestamp)][package::load_mod] package mod file not found: $package_mod_path"
-    exit 1
+    return 1
   fi
 
   cat $package_mod_path
